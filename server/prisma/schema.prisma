@@ -1,0 +1,62 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(COLLABORATOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  tasksAssigned Task[]
+  pushSubscriptions PushSubscription[]
+}
+
+model Task {
+  id             String    @id @default(uuid())
+  title          String
+  description    String?
+  dueDate        DateTime?
+  priority       Priority  @default(MEDIUM)
+  status         Status    @default(TODO)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  assignedUserId String?
+  assignedUser   User?     @relation(fields: [assignedUserId], references: [id])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  endpoint  String
+  p256dh    String
+  auth      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  PROJECT_MANAGER
+  COLLABORATOR
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum Status {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+}
