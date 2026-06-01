@@ -1,11 +1,67 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Dashboard } from './pages/Dashboard';
+import { Settings } from './pages/Settings';
+import { Login } from './pages/Login';
+import './index.css';
+
+// We create an internal component layout wrapper so we can use hooks like useLocation safely
+const DashboardLayout: React.FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  return (
+    <div className="flex min-h-screen bg-slate-50 overflow-hidden">
+      {/* Sidebar Wrapper */}
+      <div className={`transition-all duration-300 ease-in-out shrink-0 ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
+        <div className="w-full h-full overflow-hidden">
+          <Sidebar isOpen={isSidebarOpen} />
+        </div>
+      </div>
+
+      {/* Main Content Space */}
+      <div className="flex-1 flex flex-col bg-white border-l border-slate-200 min-w-0 transition-all duration-300">
+        <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <main className="p-10 flex flex-col items-center justify-center flex-1">
+          {/* React Router will automatically inject the active page component here */}
+          <Routes>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="settings" element={<Settings />} />
+            {/* Fallback internal redirect if path is wrong */}
+            <Route path="*" element={<Navigate to="dashboard" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </div>
+  );
+};
 
 const App: React.FC = () => {
+  // Application authentication simulation state
+  const [auth, setAuth] = useState(false);
+
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', textAlign: 'center' }}>
-      <h1>Welcome to nexTask</h1>
-      <p>The Collaborative Task Management System is now running.</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Public Login Route */}
+        <Route 
+          path="/login" 
+          element={auth ? <Navigate to="/dashboard" replace /> : <Login onLogin={() => setAuth(true)} />} 
+        />
+
+        {/* Master Protected Dashboard Route Node */}
+        <Route 
+          path="/*" 
+          element={
+            <ProtectedRoute isAuthenticated={auth}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
