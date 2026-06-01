@@ -2,7 +2,6 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
   return (
     <nav className="h-16 border-b border-slate-200 flex items-center justify-between px-6 bg-white text-slate-800">
       <div className="flex items-center gap-4">
-        {/* Hamburger Menu Icon (Now visible on ALL screens) */}
         <button
           onClick={onMenuClick}
           className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
@@ -17,13 +16,11 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
           </svg>
         </button>
 
-        {/* Brand Title (Now visible on ALL screens if the sidebar is closed) */}
         <div className="font-extrabold text-xl tracking-tight text-slate-900 md:hidden">
           nexTask
         </div>
       </div>
 
-      {/* User Status / Actions Area */}
       <div className="flex items-center gap-4">
         <span className="text-sm font-semibold text-slate-600">Active</span>
         <div className="h-8 w-8 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center">

@@ -9,30 +9,36 @@ import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
 import { Settings } from './pages/Settings';
 
-// We create an internal component layout wrapper so we can use hooks like useLocation safely
 const DashboardLayout: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 overflow-hidden">
-      {/* Sidebar Wrapper */}
+    <div className="flex min-h-screen bg-slate-50 overflow-hidden relative">
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 md:hidden transition-opacity duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <div
-        className={`transition-all duration-300 ease-in-out shrink-0 ${isSidebarOpen ? 'w-64' : 'w-20'}`}
+        className={`fixed inset-y-0 left-0 z-50 transform ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } transition-transform duration-300 ease-in-out shrink-0 bg-slate-50 md:relative md:translate-x-0 ${
+          isSidebarOpen ? 'md:w-64' : 'md:w-20'
+        }`}
       >
         <div className="w-full h-full overflow-hidden">
           <Sidebar isOpen={isSidebarOpen} />
         </div>
       </div>
 
-      {/* Main Content Space */}
       <div className="flex-1 flex flex-col bg-white border-l border-slate-200 min-w-0 transition-all duration-300">
         <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
         <main className="p-10 flex flex-col items-center justify-center flex-1">
-          {/* React Router will automatically inject the active page component here */}
           <Routes>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="settings" element={<Settings />} />
-            {/* Fallback internal redirect if path is wrong */}
             <Route path="*" element={<Navigate to="dashboard" replace />} />
           </Routes>
         </main>
@@ -42,13 +48,11 @@ const DashboardLayout: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  // Application authentication simulation state
   const [auth, setAuth] = useState(false);
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Login Route */}
         <Route
           path="/login"
           element={
@@ -56,7 +60,6 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Master Protected Dashboard Route Node */}
         <Route
           path="/*"
           element={
