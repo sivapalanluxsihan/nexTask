@@ -15,8 +15,10 @@ const DashboardLayout: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-slate-50 overflow-hidden relative">
       {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 md:hidden transition-opacity duration-300"
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300 focus:ring-2 focus:ring-indigo-500"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}

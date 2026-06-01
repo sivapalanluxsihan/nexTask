@@ -66,7 +66,7 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
         <button
           onClick={() => window.location.reload()}
           title="Log Out"
-          className={`flex items-center gap-3 w-full ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-lg font-bold text-sm transition-all duration-200`}
+          className={`group flex items-center gap-3 w-full ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-lg font-bold text-sm transition-all duration-200`}
         >
           <LogOut className="w-5 h-5 shrink-0 text-slate-400 group-hover:text-red-600" />
           {isOpen && <span>Log Out</span>}

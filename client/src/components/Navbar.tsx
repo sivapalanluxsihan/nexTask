@@ -3,7 +3,9 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
     <nav className="h-16 border-b border-slate-200 flex items-center justify-between px-6 bg-white text-slate-800">
       <div className="flex items-center gap-4">
         <button
-          onClick={onMenuClick}
+          type="button"
+          aria-label="Open menu"
+          onClick={() => onMenuClick?.()}
           className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
