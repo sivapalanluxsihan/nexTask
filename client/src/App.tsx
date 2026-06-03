@@ -1,19 +1,31 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { Navbar } from './components/Navbar';
-import { ProtectedRoute } from './components/ProtectedRoute';
 import { Sidebar } from './components/Sidebar';
+import { RedirectIfAuthenticated, RequireAuth } from './components/auth/RouteGuard';
 import './index.css';
 import { Dashboard } from './pages/Dashboard';
-import { Login } from './pages/Login';
 import { Settings } from './pages/Settings';
+import ForceResetPage from './pages/auth/ForceResetPage';
+import LoginPage from './pages/auth/LoginPage';
+import ProfilePage from './pages/profile/ProfilePage';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30_000,
+    },
+  },
+});
 
 const DashboardLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 overflow-hidden relative">
+    <div className="flex h-screen bg-slate-50 overflow-hidden relative">
       {isSidebarOpen && (
         <button
           type="button"
@@ -35,11 +47,12 @@ const DashboardLayout: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col bg-white border-l border-slate-200 min-w-0 transition-all duration-300">
+      <div className="flex-1 flex flex-col bg-white border-l border-slate-200 min-w-0 transition-all duration-300 h-screen">
         <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="p-10 flex flex-col items-center justify-center flex-1">
+        <main className="flex-1 flex flex-col min-h-0 bg-zinc-950 overflow-y-auto">
           <Routes>
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="dashboard" replace />} />
           </Routes>
@@ -50,28 +63,39 @@ const DashboardLayout: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const [auth, setAuth] = useState(false);
-
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            auth ? <Navigate to="/dashboard" replace /> : <Login onLogin={() => setAuth(true)} />
-          }
-        />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <RedirectIfAuthenticated>
+                <LoginPage />
+              </RedirectIfAuthenticated>
+            }
+          />
 
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute isAuthenticated={auth}>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+          <Route
+            path="/force-reset"
+            element={
+              <RequireAuth>
+                <ForceResetPage />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/*"
+            element={
+              <RequireAuth>
+                <DashboardLayout />
+              </RequireAuth>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };
 

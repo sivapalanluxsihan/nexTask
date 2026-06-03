@@ -94,3 +94,82 @@ Content-Type: {{contentType}}
 ### 11. Delete Task
 DELETE {{baseUrl}}/tasks/{{taskId}}
 Authorization: Bearer {{authToken}}
+
+
+
+### nexTask API – T1.4 User Onboarding – Test Requests
+### Use the REST Client extension in VS Code (Huachao Mao)
+
+@baseUrl = http://localhost:3000
+@devEmail = developer@nextask.com
+@devPassword = SecurePassword123!
+
+### ─── 1. Login ───────────────────────────────────────────────────────────
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{devEmail}}",
+  "password": "{{devPassword}}"
+}
+
+### ─── Copy the token from the response above and paste below ─────────────
+@token = PASTE_TOKEN_HERE
+
+### ─── 2. Try a protected route (should 403 if mustResetPassword=true) ────
+GET {{baseUrl}}/tasks
+Authorization: Bearer {{token}}
+
+### ─── 3. First-login password reset ─────────────────────────────────────
+POST {{baseUrl}}/auth/reset-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "{{devPassword}}",
+  "newPassword": "NewSecure@2025!",
+  "confirmNewPassword": "NewSecure@2025!"
+}
+
+### ─── Copy the NEW token from the response above ─────────────────────────
+@newToken = PASTE_NEW_TOKEN_HERE
+
+### ─── 4. Verify tasks are now accessible ────────────────────────────────
+GET {{baseUrl}}/tasks
+Authorization: Bearer {{newToken}}
+
+### ─── 5. Get my profile ─────────────────────────────────────────────────
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{newToken}}
+
+### ─── 6. Update profile ─────────────────────────────────────────────────
+PATCH {{baseUrl}}/users/me
+Authorization: Bearer {{newToken}}
+Content-Type: application/json
+
+{
+  "name": "Dev User",
+  "email": "developer@nextask.com"
+}
+
+### ─── 7. Change password (voluntary, post-onboarding) ───────────────────
+POST {{baseUrl}}/users/me/change-password
+Authorization: Bearer {{newToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "NewSecure@2025!",
+  "newPassword": "AnotherPass@99!",
+  "confirmNewPassword": "AnotherPass@99!"
+}
+
+### ─── 8. Weak password test (should return 400 error) ───────────────────
+POST {{baseUrl}}/auth/reset-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "{{devPassword}}",
+  "newPassword": "weakpassword",
+  "confirmNewPassword": "weakpassword"
+}

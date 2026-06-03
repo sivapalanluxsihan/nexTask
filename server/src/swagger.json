@@ -7,6 +7,141 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
+			"UserProfile": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string",
+						"nullable": true
+					},
+					"role": {
+						"type": "string"
+					},
+					"mustResetPassword": {
+						"type": "boolean"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"required": [
+					"id",
+					"email",
+					"name",
+					"role",
+					"mustResetPassword",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_UserProfile_": {
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": [
+							"success",
+							"error"
+						]
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/UserProfile"
+							}
+						],
+						"nullable": true
+					},
+					"error": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"required": [
+					"status",
+					"message",
+					"data",
+					"error"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateProfileRequest": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_null_": {
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": [
+							"success",
+							"error"
+						]
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"anyOf": [],
+						"nullable": true
+					},
+					"error": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"required": [
+					"status",
+					"message",
+					"data",
+					"error"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ChangePasswordRequest": {
+				"properties": {
+					"currentPassword": {
+						"type": "string"
+					},
+					"newPassword": {
+						"type": "string"
+					},
+					"confirmNewPassword": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"currentPassword",
+					"newPassword",
+					"confirmNewPassword"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"_36_Enums.Priority": {
 				"type": "string",
 				"enum": [
@@ -199,36 +334,6 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ApiResponse_null_": {
-				"properties": {
-					"status": {
-						"type": "string",
-						"enum": [
-							"success",
-							"error"
-						]
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"anyOf": [],
-						"nullable": true
-					},
-					"error": {
-						"type": "string",
-						"nullable": true
-					}
-				},
-				"required": [
-					"status",
-					"message",
-					"data",
-					"error"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
 			"PingResponse": {
 				"properties": {
 					"message": {
@@ -250,10 +355,14 @@
 				"properties": {
 					"token": {
 						"type": "string"
+					},
+					"mustResetPassword": {
+						"type": "boolean"
 					}
 				},
 				"required": [
-					"token"
+					"token",
+					"mustResetPassword"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -323,6 +432,26 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"ResetPasswordRequest": {
+				"properties": {
+					"currentPassword": {
+						"type": "string"
+					},
+					"newPassword": {
+						"type": "string"
+					},
+					"confirmNewPassword": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"currentPassword",
+					"newPassword",
+					"confirmNewPassword"
+				],
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {
@@ -339,6 +468,96 @@
 		"contact": {}
 	},
 	"paths": {
+		"/users/me": {
+			"get": {
+				"operationId": "GetMe",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_UserProfile_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Returns the authenticated user's profile.",
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": []
+			},
+			"patch": {
+				"operationId": "UpdateMe",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_UserProfile_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Updates the authenticated user's name and/or email.",
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateProfileRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/users/me/change-password": {
+			"post": {
+				"operationId": "ChangePassword",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Allows an authenticated, onboarded user to change their password voluntarily.\n(First-login forced reset uses POST /auth/reset-password instead.)",
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ChangePasswordRequest"
+							}
+						}
+					}
+				}
+			}
+		},
 		"/tasks": {
 			"get": {
 				"operationId": "GetTasks",
@@ -581,6 +800,40 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/LoginRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/auth/reset-password": {
+			"post": {
+				"operationId": "ResetPassword",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_AuthData_"
+								}
+							}
+						}
+					}
+				},
+				"description": "First-login password reset (and any subsequent voluntary reset).\nRequires a valid JWT — users with mustResetPassword=true are ONLY\nallowed to call this endpoint until they complete the reset.",
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ResetPasswordRequest"
 							}
 						}
 					}
