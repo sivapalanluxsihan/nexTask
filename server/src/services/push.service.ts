@@ -63,9 +63,9 @@ export class PushService {
   /**
    * Unsubscribes a user's device/endpoint
    */
-  static async unsubscribe(endpoint: string) {
+  static async unsubscribe(userId: string, endpoint: string) {
     return prisma.pushSubscription.deleteMany({
-      where: { endpoint },
+      where: { userId, endpoint },
     });
   }
 

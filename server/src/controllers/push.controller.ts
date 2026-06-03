@@ -41,8 +41,12 @@ export class PushController extends Controller {
    * Unsubscribes the current user's device/browser from push notifications.
    */
   @Post('unsubscribe')
-  public async unsubscribe(@Body() body: { endpoint: string }): Promise<ApiResponse<null>> {
-    await PushService.unsubscribe(body.endpoint);
+  public async unsubscribe(
+    @Body() body: { endpoint: string },
+    @Request() request: ExRequest,
+  ): Promise<ApiResponse<null>> {
+    const { userId } = (request as any).user;
+    await PushService.unsubscribe(userId, body.endpoint);
     return successResponse('Unsubscribed from push notifications successfully.', null);
   }
 }
