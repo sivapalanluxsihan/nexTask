@@ -31,7 +31,7 @@ export function validatePasswordComplexity(password: string): PasswordValidation
   if (!/[0-9]/.test(password)) {
     errors.push('Password must contain at least one digit (0–9).');
   }
-  if (!/[!@#$%^&*()\-_=+\[\]{};:'",.<>/?\\|`~]/.test(password)) {
+  if (!/[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]/.test(password)) {
     errors.push('Password must contain at least one special character (e.g. !@#$%).');
   }
 
