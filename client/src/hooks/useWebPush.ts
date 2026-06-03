@@ -109,9 +109,8 @@ export function useWebPush() {
       const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
         const endpoint = subscription.endpoint;
-        // Unsubscribe from push server first
+        // Unsubscribe locally first, then remove the subscription from the backend database
         await subscription.unsubscribe();
-        // Remove subscription from backend database
         await apiClient.post('/push/unsubscribe', { endpoint });
       }
       setIsSubscribed(false);

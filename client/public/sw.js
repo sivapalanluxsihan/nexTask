@@ -30,9 +30,6 @@ self.addEventListener('push', (event) => {
   const title = payload.title;
   const options = {
     body: payload.body,
-    // Using standard notification settings
-    icon: '/vite.svg',
-    badge: '/vite.svg',
     data: payload.data || {},
   };
 

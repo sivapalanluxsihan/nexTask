@@ -120,8 +120,9 @@ export const PushNotificationPrompt: React.FC = () => {
             Enable notifications
           </button>
           <button
+          <button
             onClick={handleMaybeLater}
-            className="w-full py-3 rounded-xl text-sm font-semibold text-zinc-300 bg-zinc-850 hover:bg-zinc-800 transition-all active:scale-[.98]"
+            className="w-full py-3 rounded-xl text-sm font-semibold text-zinc-300 bg-zinc-800 hover:bg-zinc-700 transition-all active:scale-[.98]"
           >
             Maybe later
           </button>

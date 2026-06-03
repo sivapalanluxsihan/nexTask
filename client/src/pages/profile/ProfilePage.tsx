@@ -290,8 +290,7 @@ export default function ProfilePage() {
 
           <div className="space-y-4">
             <p className="text-sm text-zinc-400 leading-relaxed">
-              Enable push notifications to receive real-time updates when tasks are assigned to you
-              or when their status changes.
+              Enable push notifications to receive real-time updates when tasks are assigned to you.
             </p>
 
             {!isSupported ? (
