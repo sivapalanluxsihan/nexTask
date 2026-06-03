@@ -8,15 +8,16 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  role      Role     @default(COLLABORATOR)
-  mustResetPassword Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  tasksAssigned Task[]
+  id                String   @id @default(uuid())
+  email             String   @unique
+  password          String
+  name              String?
+  role              Role     @default(COLLABORATOR)
+  mustResetPassword Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tasksAssigned     Task[]
   pushSubscriptions PushSubscription[]
 }
 
