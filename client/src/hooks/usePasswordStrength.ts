@@ -1,24 +1,11 @@
+import { PASSWORD_RULES, PASSWORD_RULE_TESTS } from '@nextask/types';
 import { useMemo } from 'react';
 
 interface Rule {
   id: string;
   label: string;
-  test: (p: string) => boolean;
   met: boolean;
 }
-
-// These MUST mirror server/src/utils/password.util.ts exactly
-const RULES = [
-  { id: 'length', label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
-  { id: 'uppercase', label: 'One uppercase letter (A–Z)', test: (p: string) => /[A-Z]/.test(p) },
-  { id: 'lowercase', label: 'One lowercase letter (a–z)', test: (p: string) => /[a-z]/.test(p) },
-  { id: 'number', label: 'One number (0–9)', test: (p: string) => /[0-9]/.test(p) },
-  {
-    id: 'special',
-    label: 'One special character (!@#$%^&*…)',
-    test: (p: string) => /[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]/.test(p),
-  },
-];
 
 type StrengthLevel = 'empty' | 'weak' | 'fair' | 'good' | 'strong';
 
@@ -44,17 +31,20 @@ const LEVELS: Record<number, { level: StrengthLevel; color: string; label: strin
 
 export function usePasswordStrength(password: string): PasswordStrength {
   return useMemo(() => {
-    const rules: Rule[] = RULES.map((r) => ({ ...r, met: r.test(password) }));
+    const rules: Rule[] = PASSWORD_RULES.map((r) => {
+      const test = PASSWORD_RULE_TESTS[r.id];
+      return { id: r.id, label: r.label, met: test ? test(password) : false };
+    });
     const metCount = rules.filter((r) => r.met).length;
     const { level, color, label } = LEVELS[metCount];
 
     return {
       rules,
       metCount,
-      totalCount: RULES.length,
-      isValid: metCount === RULES.length,
+      totalCount: PASSWORD_RULES.length,
+      isValid: metCount === PASSWORD_RULES.length,
       level,
-      percentage: (metCount / RULES.length) * 100,
+      percentage: (metCount / PASSWORD_RULES.length) * 100,
       color,
       label,
     };

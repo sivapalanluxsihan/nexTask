@@ -1,28 +1,15 @@
+import {
+  ChangePasswordRequest,
+  ProfileUpdateRequest as UpdateProfileRequest,
+  UserProfile,
+  validatePasswordComplexity,
+} from '@nextask/types';
+
 import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/apiError.util';
 import { hashPassword, verifyPassword } from '../utils/hash.util';
-import { validatePasswordComplexity } from '../utils/password.util';
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  name: string | null;
-  role: string;
-  mustResetPassword: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface UpdateProfileRequest {
-  name?: string;
-  email?: string;
-}
-
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-  confirmNewPassword: string;
-}
+export type { ChangePasswordRequest, UpdateProfileRequest, UserProfile };
 
 export class UserService {
   /**

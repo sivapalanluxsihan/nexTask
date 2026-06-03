@@ -1,9 +1,6 @@
-export interface ApiResponse<T = null> {
-  status: 'success' | 'error';
-  message: string;
-  data: T | null;
-  error: string | null;
-}
+import { ApiResponse } from '@nextask/types';
+
+export type { ApiResponse };
 
 export function successResponse<T>(message: string, data: T): ApiResponse<T> {
   return {

@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { login } from '@/api/auth.api';
 import { getProfile } from '@/api/profile.api';
 import { PasswordInput } from '@/components/ui/PasswordInput';
+import { extractApiError } from '@/lib/apiError';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -48,10 +49,7 @@ export default function LoginPage() {
         navigate(from, { replace: true });
       }
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'Login failed. Please try again.';
-      setError(msg);
+      setError(extractApiError(err, 'Login failed. Please try again.'));
     } finally {
       setLoading(false);
     }

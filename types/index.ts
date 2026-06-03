@@ -10,6 +10,8 @@ export interface User {
   updatedAt: Date | string;
 }
 
+export type UserProfile = User;
+
 export interface Task {
   id: string;
   title: string;
@@ -72,6 +74,38 @@ export const PASSWORD_RULES: PasswordRule[] = [
   { id: 'number', label: 'One number (0–9)' },
   { id: 'special', label: 'One special character (!@#$%^&*…)' },
 ];
+
+/**
+ * Test functions for each password rule, keyed by rule ID.
+ * Shared by both server validation and client-side strength meter.
+ */
+export const PASSWORD_RULE_TESTS: Record<string, (password: string) => boolean> = {
+  length: (p) => p.length >= 8,
+  uppercase: (p) => /[A-Z]/.test(p),
+  lowercase: (p) => /[a-z]/.test(p),
+  number: (p) => /[0-9]/.test(p),
+  special: (p) => /[!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~]/.test(p),
+};
+
+export interface PasswordValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+/**
+ * Validates a password against all PASSWORD_RULES.
+ * Usable on both server and client — single source of truth.
+ */
+export function validatePasswordComplexity(password: string): PasswordValidationResult {
+  const errors: string[] = [];
+  for (const rule of PASSWORD_RULES) {
+    const test = PASSWORD_RULE_TESTS[rule.id];
+    if (test && !test(password)) {
+      errors.push(`Password must satisfy: ${rule.label}.`);
+    }
+  }
+  return { valid: errors.length === 0, errors };
+}
 
 // ─── API Response Wrapper ─────────────────────────────────────────────────────
 

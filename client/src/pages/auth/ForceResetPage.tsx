@@ -7,6 +7,7 @@ import { getProfile } from '@/api/profile.api';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter';
 import { usePasswordStrength } from '@/hooks/usePasswordStrength';
+import { extractApiError } from '@/lib/apiError';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -50,8 +51,7 @@ export default function ForceResetPage() {
       // Brief success state then navigate to dashboard
       setTimeout(() => navigate('/dashboard', { replace: true }), 1800);
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } } };
-      setError(e?.response?.data?.message ?? 'Failed to update password.');
+      setError(extractApiError(err, 'Failed to update password.'));
     } finally {
       setLoading(false);
     }

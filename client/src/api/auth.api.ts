@@ -1,9 +1,4 @@
-import {
-  ApiResponse,
-  LoginRequest,
-  LoginResponse,
-  PasswordResetRequest,
-} from '@nextask/types';
+import { ApiResponse, LoginRequest, LoginResponse, PasswordResetRequest } from '@nextask/types';
 
 import apiClient from './client';
 

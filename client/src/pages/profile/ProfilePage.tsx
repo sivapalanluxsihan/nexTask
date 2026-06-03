@@ -6,6 +6,7 @@ import { changePassword, getProfile, updateProfile } from '@/api/profile.api';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter';
 import { usePasswordStrength } from '@/hooks/usePasswordStrength';
+import { extractApiError } from '@/lib/apiError';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -36,10 +37,7 @@ export default function ProfilePage() {
       setTimeout(() => setProfileMsg(null), 3000);
     },
     onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'Failed to update profile.';
-      setProfileMsg({ type: 'error', text: msg });
+      setProfileMsg({ type: 'error', text: extractApiError(err, 'Failed to update profile.') });
     },
   });
 
@@ -69,10 +67,7 @@ export default function ProfilePage() {
       setTimeout(() => setPwMsg(null), 4000);
     },
     onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'Failed to change password.';
-      setPwMsg({ type: 'error', text: msg });
+      setPwMsg({ type: 'error', text: extractApiError(err, 'Failed to change password.') });
     },
   });
 

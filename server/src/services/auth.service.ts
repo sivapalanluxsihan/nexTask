@@ -1,8 +1,9 @@
+import { validatePasswordComplexity } from '@nextask/types';
+
 import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/apiError.util';
 import { hashPassword, verifyPassword } from '../utils/hash.util';
 import { generateToken } from '../utils/jwt.util';
-import { validatePasswordComplexity } from '../utils/password.util';
 
 export interface RegisterRequest {
   email: string;
