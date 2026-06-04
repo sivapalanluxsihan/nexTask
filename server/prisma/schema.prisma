@@ -19,6 +19,8 @@ model User {
 
   tasksAssigned     Task[]
   pushSubscriptions PushSubscription[]
+  comments          Comment[]
+  attachments       Attachment[]
 }
 
 model Task {
@@ -33,6 +35,8 @@ model Task {
 
   assignedUserId String?
   assignedUser   User?     @relation(fields: [assignedUserId], references: [id])
+  comments       Comment[]
+  attachments    Attachment[]
 }
 
 model PushSubscription {
@@ -43,6 +47,33 @@ model PushSubscription {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+}
+
+model Comment {
+  id          String       @id @default(uuid())
+  content     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  taskId      String
+  task        Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+}
+
+model Attachment {
+  id           String   @id @default(uuid())
+  filename     String
+  fileUrl      String
+  mimeType     String
+  fileSize     Int
+  createdAt    DateTime @default(now())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  commentId    String?
+  comment      Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
 }
 
 enum Role {
