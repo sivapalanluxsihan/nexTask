@@ -22,6 +22,8 @@ export interface Task {
   assignedUserId?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
+  comments?: Comment[];
+  attachments?: Attachment[];
 }
 
 // ─── Auth Payloads ────────────────────────────────────────────────────────────
@@ -126,4 +128,41 @@ export interface PushSubscriptionKeys {
 export interface PushSubscriptionRequest {
   endpoint: string;
   keys: PushSubscriptionKeys;
+}
+
+// ─── Collaboration (Comments & Attachments) ───────────────────────────────────
+
+export interface Comment {
+  id: string;
+  content: string;
+  taskId: string;
+  authorId: string;
+  author?: User;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  attachments?: Attachment[];
+}
+
+export interface CreateCommentRequest {
+  content: string;
+  attachments?: CreateAttachmentRequest[];
+}
+
+export interface Attachment {
+  id: string;
+  filename: string;
+  fileUrl: string;
+  mimeType: string;
+  fileSize: number;
+  taskId: string;
+  commentId: string | null;
+  uploadedById: string;
+  createdAt: Date | string;
+}
+
+export interface CreateAttachmentRequest {
+  filename: string;
+  fileUrl: string;
+  mimeType: string;
+  fileSize: number;
 }

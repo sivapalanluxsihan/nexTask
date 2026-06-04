@@ -446,6 +446,227 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"Attachment": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"filename": {
+						"type": "string"
+					},
+					"fileUrl": {
+						"type": "string"
+					},
+					"mimeType": {
+						"type": "string"
+					},
+					"fileSize": {
+						"type": "number",
+						"format": "double"
+					},
+					"taskId": {
+						"type": "string"
+					},
+					"commentId": {
+						"type": "string",
+						"nullable": true
+					},
+					"uploadedById": {
+						"type": "string"
+					},
+					"createdAt": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "string"
+							}
+						]
+					}
+				},
+				"required": [
+					"id",
+					"filename",
+					"fileUrl",
+					"mimeType",
+					"fileSize",
+					"taskId",
+					"commentId",
+					"uploadedById",
+					"createdAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Comment": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"content": {
+						"type": "string"
+					},
+					"taskId": {
+						"type": "string"
+					},
+					"authorId": {
+						"type": "string"
+					},
+					"author": {
+						"$ref": "#/components/schemas/User"
+					},
+					"createdAt": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "string"
+							}
+						]
+					},
+					"updatedAt": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "string"
+							}
+						]
+					},
+					"attachments": {
+						"items": {
+							"$ref": "#/components/schemas/Attachment"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"content",
+					"taskId",
+					"authorId",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Comment-Array_": {
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": [
+							"success",
+							"error"
+						]
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/Comment"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"error": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"required": [
+					"status",
+					"message",
+					"data",
+					"error"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Comment_": {
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": [
+							"success",
+							"error"
+						]
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Comment"
+							}
+						],
+						"nullable": true
+					},
+					"error": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"required": [
+					"status",
+					"message",
+					"data",
+					"error"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateAttachmentRequest": {
+				"properties": {
+					"filename": {
+						"type": "string"
+					},
+					"fileUrl": {
+						"type": "string"
+					},
+					"mimeType": {
+						"type": "string"
+					},
+					"fileSize": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"filename",
+					"fileUrl",
+					"mimeType",
+					"fileSize"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateCommentRequest": {
+				"properties": {
+					"content": {
+						"type": "string"
+					},
+					"attachments": {
+						"items": {
+							"$ref": "#/components/schemas/CreateAttachmentRequest"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"content"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"AuthData": {
 				"properties": {
 					"token": {
@@ -544,6 +765,73 @@
 					"currentPassword",
 					"newPassword",
 					"confirmNewPassword"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Attachment-Array_": {
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": [
+							"success",
+							"error"
+						]
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/Attachment"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"error": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"required": [
+					"status",
+					"message",
+					"data",
+					"error"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Attachment_": {
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": [
+							"success",
+							"error"
+						]
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Attachment"
+							}
+						],
+						"nullable": true
+					},
+					"error": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"required": [
+					"status",
+					"message",
+					"data",
+					"error"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -952,6 +1240,86 @@
 				"parameters": []
 			}
 		},
+		"/tasks/{taskId}/comments": {
+			"get": {
+				"operationId": "GetComments",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Comment-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves all comments for a specific task.",
+				"tags": [
+					"Comments"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"post": {
+				"operationId": "CreateComment",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Comment_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Posts a new comment to a specific task.",
+				"tags": [
+					"Comments"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCommentRequest"
+							}
+						}
+					}
+				}
+			}
+		},
 		"/auth/register": {
 			"post": {
 				"operationId": "Register",
@@ -1042,6 +1410,122 @@
 						}
 					}
 				}
+			}
+		},
+		"/tasks/{taskId}/attachments": {
+			"get": {
+				"operationId": "GetAttachments",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Attachment-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves all attachments for a specific task.",
+				"tags": [
+					"Attachments"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"post": {
+				"operationId": "UploadAttachmentMetadata",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Attachment_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Uploads file metadata directly to a task.",
+				"tags": [
+					"Attachments"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateAttachmentRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/attachments/{attachmentId}": {
+			"delete": {
+				"operationId": "RemoveAttachment",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Deletes an attachment metadata record by ID.",
+				"tags": [
+					"Attachments"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "attachmentId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		}
 	},
