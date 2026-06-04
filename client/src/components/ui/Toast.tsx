@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
-import { useToastStore, Toast } from '@/store/toast.store';
+import { AlertCircle, AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+
+import { Toast, useToastStore } from '@/store/toast.store';
 
 export const ToastContainer: React.FC = () => {
   const toasts = useToastStore((state) => state.toasts);
@@ -18,18 +19,30 @@ const ToastCard: React.FC<{ toast: Toast }> = ({ toast }) => {
   const removeToast = useToastStore((state) => state.removeToast);
   const [isMounted, setIsMounted] = useState(false);
 
+  const dismiss = useCallback(() => {
+    setIsMounted(false);
+    const timer = setTimeout(() => {
+      removeToast(toast.id);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [removeToast, toast.id]);
+
   useEffect(() => {
     // Trigger transition after mount
     const raf = requestAnimationFrame(() => setIsMounted(true));
-    return () => cancelAnimationFrame(raf);
-  }, []);
 
-  const handleDismiss = () => {
-    setIsMounted(false);
-    setTimeout(() => {
-      removeToast(toast.id);
-    }, 300);
-  };
+    let dismissTimer: ReturnType<typeof setTimeout> | undefined;
+    if (toast.duration && toast.duration > 0) {
+      dismissTimer = setTimeout(() => {
+        dismiss();
+      }, toast.duration);
+    }
+
+    return () => {
+      cancelAnimationFrame(raf);
+      if (dismissTimer) clearTimeout(dismissTimer);
+    };
+  }, [toast.duration, dismiss]);
 
   const config = {
     success: {
@@ -67,13 +80,13 @@ const ToastCard: React.FC<{ toast: Toast }> = ({ toast }) => {
       role="alert"
     >
       {config.icon}
-      
-      <div className="flex-1 text-sm font-medium text-zinc-200 break-words leading-snug">
+
+      <div className="flex-1 text-sm font-medium text-zinc-200 wrap-break-word leading-snug">
         {toast.message}
       </div>
 
       <button
-        onClick={handleDismiss}
+        onClick={dismiss}
         className="text-zinc-500 hover:text-zinc-300 transition-colors focus:outline-none shrink-0"
         aria-label="Dismiss notification"
       >

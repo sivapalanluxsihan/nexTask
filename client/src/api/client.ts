@@ -1,8 +1,14 @@
 import axios from 'axios';
 
+import { extractApiError } from '@/lib/apiError';
 import { useAuthStore } from '@/store/auth.store';
 import { useToastStore } from '@/store/toast.store';
-import { extractApiError } from '@/lib/apiError';
+
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    skipGlobalToast?: boolean;
+  }
+}
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3000',
@@ -30,8 +36,7 @@ apiClient.interceptors.response.use(
       useAuthStore.getState().logout();
       window.location.href = '/login';
     } else {
-      const skipGlobalToast = (error.config as Record<string, unknown> & { skipGlobalToast?: boolean })?.skipGlobalToast;
-      if (!skipGlobalToast && !isAuthUrl) {
+      if (!error.config?.skipGlobalToast && !isAuthUrl) {
         const message = extractApiError(error);
         useToastStore.getState().showError(message);
       }
@@ -41,4 +46,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-
