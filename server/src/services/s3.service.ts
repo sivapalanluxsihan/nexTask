@@ -107,5 +107,6 @@ export const deleteFile = async (fileKey: string): Promise<void> => {
     await client.send(command);
   } catch (error) {
     console.error(`Failed to delete file from S3 for key ${fileKey}:`, error);
+    throw new ApiError(502, 'Failed to delete file from storage.');
   }
 };
