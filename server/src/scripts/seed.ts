@@ -85,14 +85,18 @@ async function main() {
 
   // Create a default project owned by PM
   console.log('📦 Creating default project...');
-  const project = await prisma.project.create({
-    data: {
-      name: 'Alpha Project',
-      description: 'The primary workspace for task tracking.',
-      status: 'ACTIVE',
-      ownerId: pmUser.id,
-    },
-  });
+  const project =
+    (await prisma.project.findFirst({
+      where: { name: 'Alpha Project', ownerId: pmUser.id },
+    })) ??
+    (await prisma.project.create({
+      data: {
+        name: 'Alpha Project',
+        description: 'The primary workspace for task tracking.',
+        status: 'ACTIVE',
+        ownerId: pmUser.id,
+      },
+    }));
 
   // Join Collaborator to the project
   await prisma.projectMember.create({
