@@ -1,4 +1,4 @@
-import { Task as SharedTask } from '@nextask/types';
+import { CreateTaskRequest, Task as SharedTask, UpdateTaskRequest } from '@nextask/types';
 import { Task } from '@prisma/client';
 import {
   Body,
@@ -16,8 +16,6 @@ import {
 } from 'tsoa';
 
 import {
-  CreateTaskInput,
-  UpdateTaskInput,
   createTask,
   deleteTask,
   getAllTasks,
@@ -49,7 +47,7 @@ export class TaskController extends Controller {
   // POST /tasks
   @Post('/')
   @SuccessResponse('201', 'Task Created')
-  public async createNewTask(@Body() body: CreateTaskInput): Promise<ApiResponse<Task>> {
+  public async createNewTask(@Body() body: CreateTaskRequest): Promise<ApiResponse<Task>> {
     const task = await createTask(body);
     this.setStatus(201);
     return successResponse('Task created successfully.', task);
@@ -59,7 +57,7 @@ export class TaskController extends Controller {
   @Put('{id}')
   public async updateExistingTask(
     @Path() id: string,
-    @Body() body: UpdateTaskInput,
+    @Body() body: UpdateTaskRequest,
   ): Promise<ApiResponse<Task>> {
     const task = await updateTask(id, body);
     return successResponse('Task updated successfully.', task);

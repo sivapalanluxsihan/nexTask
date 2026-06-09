@@ -234,39 +234,29 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "Priority": {
-        "dataType": "refAlias",
-        "type": {"ref":"_36_Enums.Priority","validators":{}},
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "Status": {
-        "dataType": "refAlias",
-        "type": {"ref":"_36_Enums.Status","validators":{}},
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "CreateTaskInput": {
+    "CreateTaskRequest": {
         "dataType": "refObject",
         "properties": {
             "title": {"dataType":"string","required":true},
             "description": {"dataType":"string"},
             "projectId": {"dataType":"string","required":true},
-            "dueDate": {"dataType":"datetime"},
-            "priority": {"ref":"Priority"},
-            "status": {"ref":"Status"},
+            "dueDate": {"dataType":"union","subSchemas":[{"dataType":"datetime"},{"dataType":"string"}]},
+            "priority": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["LOW"]},{"dataType":"enum","enums":["MEDIUM"]},{"dataType":"enum","enums":["HIGH"]}]},
+            "status": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["TODO"]},{"dataType":"enum","enums":["IN_PROGRESS"]},{"dataType":"enum","enums":["COMPLETED"]}]},
             "tags": {"dataType":"array","array":{"dataType":"string"}},
             "position": {"dataType":"double"},
         },
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "UpdateTaskInput": {
+    "UpdateTaskRequest": {
         "dataType": "refObject",
         "properties": {
             "title": {"dataType":"string"},
             "description": {"dataType":"string"},
-            "dueDate": {"dataType":"datetime"},
-            "priority": {"ref":"Priority"},
-            "status": {"ref":"Status"},
+            "dueDate": {"dataType":"union","subSchemas":[{"dataType":"datetime"},{"dataType":"string"}]},
+            "priority": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["LOW"]},{"dataType":"enum","enums":["MEDIUM"]},{"dataType":"enum","enums":["HIGH"]}]},
+            "status": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["TODO"]},{"dataType":"enum","enums":["IN_PROGRESS"]},{"dataType":"enum","enums":["COMPLETED"]}]},
             "tags": {"dataType":"array","array":{"dataType":"string"}},
             "position": {"dataType":"double"},
         },
@@ -333,7 +323,7 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "CreateProjectInput": {
+    "CreateProjectRequest": {
         "dataType": "refObject",
         "properties": {
             "name": {"dataType":"string","required":true},
@@ -353,7 +343,7 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "UpdateProjectInput": {
+    "UpdateProjectRequest": {
         "dataType": "refObject",
         "properties": {
             "name": {"dataType":"string","required":true},
@@ -747,7 +737,7 @@ export function RegisterRoutes(app: Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsTaskController_createNewTask: Record<string, TsoaRoute.ParameterSchema> = {
-                body: {"in":"body","name":"body","required":true,"ref":"CreateTaskInput"},
+                body: {"in":"body","name":"body","required":true,"ref":"CreateTaskRequest"},
         };
         app.post('/tasks',
             authenticateMiddleware([{"jwt":[]}]),
@@ -779,7 +769,7 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsTaskController_updateExistingTask: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
-                body: {"in":"body","name":"body","required":true,"ref":"UpdateTaskInput"},
+                body: {"in":"body","name":"body","required":true,"ref":"UpdateTaskRequest"},
         };
         app.put('/tasks/:id',
             authenticateMiddleware([{"jwt":[]}]),
@@ -935,7 +925,7 @@ export function RegisterRoutes(app: Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsProjectController_create: Record<string, TsoaRoute.ParameterSchema> = {
-                requestBody: {"in":"body","name":"requestBody","required":true,"ref":"CreateProjectInput"},
+                requestBody: {"in":"body","name":"requestBody","required":true,"ref":"CreateProjectRequest"},
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.post('/projects',
@@ -1031,7 +1021,7 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsProjectController_update: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
-                requestBody: {"in":"body","name":"requestBody","required":true,"ref":"UpdateProjectInput"},
+                requestBody: {"in":"body","name":"requestBody","required":true,"ref":"UpdateProjectRequest"},
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.put('/projects/:id',

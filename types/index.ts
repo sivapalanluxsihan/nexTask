@@ -28,6 +28,27 @@ export interface Task {
   attachments?: Attachment[];
 }
 
+export interface CreateTaskRequest {
+  title: string;
+  description?: string;
+  projectId: string;
+  dueDate?: Date | string;
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+  status?: 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
+  tags?: string[];
+  position?: number;
+}
+
+export interface UpdateTaskRequest {
+  title?: string;
+  description?: string;
+  dueDate?: Date | string;
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+  status?: 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
+  tags?: string[];
+  position?: number;
+}
+
 // ─── Auth Payloads ────────────────────────────────────────────────────────────
 
 export interface LoginRequest {
@@ -132,6 +153,16 @@ export interface Project {
   ownerId: string;
   createdAt: Date | string;
   updatedAt: Date | string;
+}
+
+export interface CreateProjectRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateProjectRequest {
+  name: string;
+  description?: string;
 }
 
 export interface ProjectMember {

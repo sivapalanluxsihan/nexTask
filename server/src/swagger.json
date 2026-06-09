@@ -624,13 +624,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"Priority": {
-				"$ref": "#/components/schemas/_36_Enums.Priority"
-			},
-			"Status": {
-				"$ref": "#/components/schemas/_36_Enums.Status"
-			},
-			"CreateTaskInput": {
+			"CreateTaskRequest": {
 				"properties": {
 					"title": {
 						"type": "string"
@@ -642,14 +636,31 @@
 						"type": "string"
 					},
 					"dueDate": {
-						"type": "string",
-						"format": "date-time"
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "string"
+							}
+						]
 					},
 					"priority": {
-						"$ref": "#/components/schemas/Priority"
+						"type": "string",
+						"enum": [
+							"LOW",
+							"MEDIUM",
+							"HIGH"
+						]
 					},
 					"status": {
-						"$ref": "#/components/schemas/Status"
+						"type": "string",
+						"enum": [
+							"TODO",
+							"IN_PROGRESS",
+							"COMPLETED"
+						]
 					},
 					"tags": {
 						"items": {
@@ -669,7 +680,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"UpdateTaskInput": {
+			"UpdateTaskRequest": {
 				"properties": {
 					"title": {
 						"type": "string"
@@ -678,14 +689,31 @@
 						"type": "string"
 					},
 					"dueDate": {
-						"type": "string",
-						"format": "date-time"
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "string"
+							}
+						]
 					},
 					"priority": {
-						"$ref": "#/components/schemas/Priority"
+						"type": "string",
+						"enum": [
+							"LOW",
+							"MEDIUM",
+							"HIGH"
+						]
 					},
 					"status": {
-						"$ref": "#/components/schemas/Status"
+						"type": "string",
+						"enum": [
+							"TODO",
+							"IN_PROGRESS",
+							"COMPLETED"
+						]
 					},
 					"tags": {
 						"items": {
@@ -879,7 +907,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"CreateProjectInput": {
+			"CreateProjectRequest": {
 				"properties": {
 					"name": {
 						"type": "string"
@@ -927,7 +955,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"UpdateProjectInput": {
+			"UpdateProjectRequest": {
 				"properties": {
 					"name": {
 						"type": "string"
@@ -1565,7 +1593,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/CreateTaskInput"
+								"$ref": "#/components/schemas/CreateTaskRequest"
 							}
 						}
 					}
@@ -1643,7 +1671,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/UpdateTaskInput"
+								"$ref": "#/components/schemas/UpdateTaskRequest"
 							}
 						}
 					}
@@ -1821,7 +1849,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/CreateProjectInput"
+								"$ref": "#/components/schemas/CreateProjectRequest"
 							}
 						}
 					}
@@ -1923,7 +1951,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/UpdateProjectInput"
+								"$ref": "#/components/schemas/UpdateProjectRequest"
 							}
 						}
 					}

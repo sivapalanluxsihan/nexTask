@@ -1,32 +1,12 @@
-import { Task as SharedTask } from '@nextask/types';
-import { Priority, Status, Task } from '@prisma/client';
+import { CreateTaskRequest, Task as SharedTask, UpdateTaskRequest } from '@nextask/types';
+import { Status, Task } from '@prisma/client';
 
 import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/apiError.util';
 import { deleteFile, generateDownloadUrl } from './s3.service';
 
-// Shape of data needed to create a task
-export interface CreateTaskInput {
-  title: string;
-  description?: string;
-  projectId: string;
-  dueDate?: Date;
-  priority?: Priority;
-  status?: Status;
-  tags?: string[];
-  position?: number;
-}
-
-// Shape of data allowed when updating a task
-export interface UpdateTaskInput {
-  title?: string;
-  description?: string;
-  dueDate?: Date;
-  priority?: Priority;
-  status?: Status;
-  tags?: string[];
-  position?: number;
-}
+export type CreateTaskInput = CreateTaskRequest;
+export type UpdateTaskInput = UpdateTaskRequest;
 
 // CREATE
 export const createTask = async (data: CreateTaskInput): Promise<Task> => {

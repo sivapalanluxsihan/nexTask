@@ -11,7 +11,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { Task } from '@nextask/types';
+import { Task, UpdateTaskRequest } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ChevronDown,
@@ -39,7 +39,6 @@ import {
 import { deleteComment, fetchComments, postComment } from '../api/comments.api';
 import { fetchUserProjects } from '../api/profile.api';
 import {
-  UpdateTaskPayload,
   createTask,
   deleteTask,
   fetchTaskById,
@@ -214,7 +213,7 @@ export function Dashboard() {
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdateTaskPayload }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateTaskRequest }) =>
       updateTask(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });

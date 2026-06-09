@@ -1,4 +1,4 @@
-import { Project } from '@nextask/types';
+import { CreateProjectRequest, Project, UpdateProjectRequest } from '@nextask/types';
 import type { Request as ExRequest } from 'express';
 import {
   Body,
@@ -24,16 +24,6 @@ import { ProjectService } from '../services/project.service';
 import { ApiError } from '../utils/apiError.util';
 import { ApiResponse, successResponse } from '../utils/response.util';
 
-export interface CreateProjectInput {
-  name: string;
-  description?: string;
-}
-
-export interface UpdateProjectInput {
-  name: string;
-  description?: string;
-}
-
 @Route('projects')
 @Tags('Projects')
 @Security('jwt')
@@ -49,7 +39,7 @@ export class ProjectController extends Controller {
   @Post('/')
   @SuccessResponse('201', 'Created')
   public async create(
-    @Body() requestBody: CreateProjectInput,
+    @Body() requestBody: CreateProjectRequest,
     @Request() request: ExRequest,
   ): Promise<ApiResponse<Project>> {
     const { userId: requestorId, role: requestorRole } = (request as any).user;
@@ -95,7 +85,7 @@ export class ProjectController extends Controller {
   @Put('{id}')
   public async update(
     @Path() id: string,
-    @Body() requestBody: UpdateProjectInput,
+    @Body() requestBody: UpdateProjectRequest,
     @Request() request: ExRequest,
   ): Promise<ApiResponse<Project>> {
     const { userId: requestorId, role: requestorRole } = (request as any).user;

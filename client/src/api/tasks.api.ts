@@ -1,25 +1,6 @@
-import { ApiResponse, Task } from '@nextask/types';
+import { ApiResponse, CreateTaskRequest, Task, UpdateTaskRequest } from '@nextask/types';
 
 import apiClient from './client';
-
-export interface CreateTaskPayload {
-  title: string;
-  description?: string;
-  projectId: string;
-  assignedUserId?: string;
-  dueDate?: string;
-  priority?: 'LOW' | 'MEDIUM' | 'HIGH';
-  status?: 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
-}
-
-export interface UpdateTaskPayload {
-  title?: string;
-  description?: string;
-  assignedUserId?: string;
-  dueDate?: string;
-  priority?: 'LOW' | 'MEDIUM' | 'HIGH';
-  status?: 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
-}
 
 // ─── Mapping Helpers ─────────────────────────────────────────────────────────
 
@@ -98,7 +79,7 @@ export async function fetchTaskById(id: string): Promise<Task> {
   return data.data;
 }
 
-export async function createTask(payload: CreateTaskPayload): Promise<Task> {
+export async function createTask(payload: CreateTaskRequest): Promise<Task> {
   const { data } = await apiClient.post<ApiResponse<Task>>('/tasks', payload);
   if (!data.data) {
     throw new Error('Failed to create task.');
@@ -106,7 +87,7 @@ export async function createTask(payload: CreateTaskPayload): Promise<Task> {
   return data.data;
 }
 
-export async function updateTask(id: string, payload: UpdateTaskPayload): Promise<Task> {
+export async function updateTask(id: string, payload: UpdateTaskRequest): Promise<Task> {
   const { data } = await apiClient.put<ApiResponse<Task>>(`/tasks/${id}`, payload);
   if (!data.data) {
     throw new Error('Failed to update task.');
