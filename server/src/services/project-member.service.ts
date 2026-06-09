@@ -7,7 +7,7 @@ import { ApiError } from '../utils/apiError.util';
  * 2. The project owner.
  * 3. A project member with PROJECT_MANAGER role.
  */
-async function verifyProjectManagerAccess(
+export async function verifyProjectManagerAccess(
   projectId: string,
   requestorId: string,
   requestorRole: string,
@@ -41,7 +41,7 @@ async function verifyProjectManagerAccess(
  * 2. The project owner.
  * 3. Any member of the project.
  */
-async function verifyProjectMemberAccess(
+export async function verifyProjectMemberAccess(
   projectId: string,
   requestorId: string,
   requestorRole: string,
