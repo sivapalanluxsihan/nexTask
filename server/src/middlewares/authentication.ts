@@ -1,5 +1,6 @@
 import { Request } from 'express';
 
+import { prisma } from '../lib/prisma';
 import { verifyToken } from '../utils/jwt.util';
 
 /**
@@ -10,10 +11,91 @@ const RESET_ALLOWED_PATHS: Array<{ method: string; path: string }> = [
   { method: 'POST', path: '/auth/reset-password' },
 ];
 
+/**
+ * Helper to resolve the projectId context from the Express Request object.
+ */
+async function getProjectIdFromRequest(request: Request): Promise<string | null> {
+  const { params, query, body, path } = request;
+
+  // 1. Query parameter check (e.g. GET /tasks?projectId=...)
+  if (query.projectId && typeof query.projectId === 'string') {
+    return query.projectId;
+  }
+
+  // 2. Body property check (e.g. POST /tasks)
+  if (body && body.projectId && typeof body.projectId === 'string') {
+    return body.projectId;
+  }
+
+  // 3. Project ID direct path parameter (e.g. /projects/:id)
+  if (path.startsWith('/projects/') && params.id && typeof params.id === 'string') {
+    return params.id;
+  }
+
+  // 4. Task ID path parameter (e.g. /tasks/:id or /tasks/:taskId/comments)
+  const taskId =
+    typeof params.taskId === 'string'
+      ? params.taskId
+      : path.startsWith('/tasks/') && typeof params.id === 'string'
+        ? params.id
+        : undefined;
+  if (taskId) {
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      select: { projectId: true },
+    });
+    return task?.projectId || null;
+  }
+
+  // 5. Comment ID path parameter (e.g. /comments/:commentId or /comments/:id)
+  const commentId =
+    typeof params.commentId === 'string'
+      ? params.commentId
+      : path.startsWith('/comments/') && typeof params.id === 'string'
+        ? params.id
+        : undefined;
+  if (commentId) {
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { taskId: true },
+    });
+    if (comment?.taskId) {
+      const task = await prisma.task.findUnique({
+        where: { id: comment.taskId },
+        select: { projectId: true },
+      });
+      return task?.projectId || null;
+    }
+  }
+
+  // 6. Attachment ID path parameter (e.g. /attachments/:attachmentId or /attachments/:id)
+  const attachmentId =
+    typeof params.attachmentId === 'string'
+      ? params.attachmentId
+      : path.startsWith('/attachments/') && typeof params.id === 'string'
+        ? params.id
+        : undefined;
+  if (attachmentId) {
+    const attachment = await prisma.attachment.findUnique({
+      where: { id: attachmentId },
+      select: { taskId: true },
+    });
+    if (attachment?.taskId) {
+      const task = await prisma.task.findUnique({
+        where: { id: attachment.taskId },
+        select: { projectId: true },
+      });
+      return task?.projectId || null;
+    }
+  }
+
+  return null;
+}
+
 export async function expressAuthentication(
   request: Request,
   securityName: string,
-  _scopes?: string[],
+  scopes?: string[],
 ): Promise<unknown> {
   if (securityName === 'jwt') {
     const authHeader = request.headers['authorization'];
@@ -42,6 +124,71 @@ export async function expressAuthentication(
               'Your account requires a password reset before you can continue. ' +
               'Please POST to /auth/reset-password.',
           };
+        }
+      }
+      // ────────────────────────────────────────────────────────────────────
+
+      // ── Scopes Authorization checks ─────────────────────────────────────
+      if (scopes && scopes.length > 0) {
+        for (const scope of scopes) {
+          if (scope === 'global:admin') {
+            if (payload.role !== 'ADMIN') {
+              throw { status: 403, message: 'Access denied. Administrator privileges required.' };
+            }
+          } else if (scope === 'global:pm') {
+            if (payload.role !== 'ADMIN' && payload.role !== 'PROJECT_MANAGER') {
+              throw { status: 403, message: 'Access denied. PM or Admin privileges required.' };
+            }
+          } else if (scope === 'project:member' || scope === 'project:manager') {
+            const projectId = await getProjectIdFromRequest(request);
+            if (!projectId) {
+              throw { status: 400, message: 'Project context is required for this request.' };
+            }
+
+            // Global Admins bypass project-level checks
+            if (payload.role === 'ADMIN') {
+              continue;
+            }
+
+            const project = await prisma.project.findUnique({
+              where: { id: projectId },
+              select: { ownerId: true },
+            });
+            if (!project) {
+              throw { status: 404, message: 'Project not found.' };
+            }
+
+            // Project owner automatically bypasses membership checks
+            if (project.ownerId === payload.userId) {
+              continue;
+            }
+
+            const membership = await prisma.projectMember.findUnique({
+              where: {
+                projectId_userId: {
+                  projectId,
+                  userId: payload.userId,
+                },
+              },
+              select: { role: true },
+            });
+
+            if (!membership) {
+              throw {
+                status: 403,
+                message: 'Access denied. You are not a member of this project.',
+              };
+            }
+
+            if (scope === 'project:manager') {
+              if (membership.role !== 'PROJECT_MANAGER') {
+                throw {
+                  status: 403,
+                  message: 'Access denied. Project Manager privileges required for this project.',
+                };
+              }
+            }
+          }
         }
       }
       // ────────────────────────────────────────────────────────────────────

@@ -79,11 +79,40 @@ export const deleteAttachment = async (
     throw new ApiError(404, 'Attachment not found.');
   }
 
-  if (
-    attachment.uploadedById !== userId &&
-    userRole !== 'ADMIN' &&
-    userRole !== 'PROJECT_MANAGER'
-  ) {
+  const isUploader = attachment.uploadedById === userId;
+  const isGlobalAdmin = userRole === 'ADMIN';
+
+  let isProjectPM = false;
+  if (!isUploader && !isGlobalAdmin) {
+    const task = await prisma.task.findUnique({
+      where: { id: attachment.taskId },
+      select: { projectId: true },
+    });
+    if (task) {
+      const project = await prisma.project.findUnique({
+        where: { id: task.projectId },
+        select: { ownerId: true },
+      });
+      if (project && project.ownerId === userId) {
+        isProjectPM = true;
+      } else {
+        const membership = await prisma.projectMember.findUnique({
+          where: {
+            projectId_userId: {
+              projectId: task.projectId,
+              userId,
+            },
+          },
+          select: { role: true },
+        });
+        if (membership && membership.role === 'PROJECT_MANAGER') {
+          isProjectPM = true;
+        }
+      }
+    }
+  }
+
+  if (!isUploader && !isGlobalAdmin && !isProjectPM) {
     throw new ApiError(403, 'You do not have permission to delete this attachment.');
   }
 

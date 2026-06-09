@@ -159,8 +159,40 @@ export const deleteComment = async (
     throw new ApiError(404, 'Comment not found.');
   }
 
-  // Only allow deletion if user is the author, or an ADMIN / PROJECT_MANAGER
-  if (comment.authorId !== userId && userRole !== 'ADMIN' && userRole !== 'PROJECT_MANAGER') {
+  const isAuthor = comment.authorId === userId;
+  const isGlobalAdmin = userRole === 'ADMIN';
+
+  let isProjectPM = false;
+  if (!isAuthor && !isGlobalAdmin) {
+    const task = await prisma.task.findUnique({
+      where: { id: comment.taskId },
+      select: { projectId: true },
+    });
+    if (task) {
+      const project = await prisma.project.findUnique({
+        where: { id: task.projectId },
+        select: { ownerId: true },
+      });
+      if (project && project.ownerId === userId) {
+        isProjectPM = true;
+      } else {
+        const membership = await prisma.projectMember.findUnique({
+          where: {
+            projectId_userId: {
+              projectId: task.projectId,
+              userId,
+            },
+          },
+          select: { role: true },
+        });
+        if (membership && membership.role === 'PROJECT_MANAGER') {
+          isProjectPM = true;
+        }
+      }
+    }
+  }
+
+  if (!isAuthor && !isGlobalAdmin && !isProjectPM) {
     throw new ApiError(403, 'You do not have permission to delete this comment.');
   }
 

@@ -1,5 +1,6 @@
 import { CreateTaskRequest, Task as SharedTask, UpdateTaskRequest } from '@nextask/types';
 import { Task } from '@prisma/client';
+import type { Request as ExRequest } from 'express';
 import {
   Body,
   Controller,
@@ -9,12 +10,14 @@ import {
   Post,
   Put,
   Query,
+  Request,
   Route,
   Security,
   SuccessResponse,
   Tags,
 } from 'tsoa';
 
+import { verifyProjectManagerAccess } from '../services/project-member.service';
 import {
   createTask,
   deleteTask,
@@ -31,6 +34,7 @@ import { ApiResponse, successResponse } from '../utils/response.util';
 export class TaskController extends Controller {
   // GET /tasks
   @Get('/')
+  @Security('jwt', ['project:member'])
   public async getTasks(@Query() projectId: string): Promise<ApiResponse<Task[]>> {
     const tasks = await getAllTasks(projectId);
     return successResponse('Tasks retrieved successfully.', tasks);
@@ -38,6 +42,7 @@ export class TaskController extends Controller {
 
   // GET /tasks/:id
   @Get('{id}')
+  @Security('jwt', ['project:member'])
   public async getTask(@Path() id: string): Promise<ApiResponse<SharedTask>> {
     const task = await getTaskById(id);
     if (!task) throw new ApiError(404, 'Task not found.');
@@ -47,6 +52,7 @@ export class TaskController extends Controller {
   // POST /tasks
   @Post('/')
   @SuccessResponse('201', 'Task Created')
+  @Security('jwt', ['project:manager'])
   public async createNewTask(@Body() body: CreateTaskRequest): Promise<ApiResponse<Task>> {
     const task = await createTask(body);
     this.setStatus(201);
@@ -55,16 +61,44 @@ export class TaskController extends Controller {
 
   // PUT /tasks/:id
   @Put('{id}')
+  @Security('jwt', ['project:member'])
   public async updateExistingTask(
     @Path() id: string,
     @Body() body: UpdateTaskRequest,
+    @Request() request: ExRequest,
   ): Promise<ApiResponse<Task>> {
+    const existingTask = await getTaskById(id);
+    if (!existingTask) throw new ApiError(404, 'Task not found.');
+
+    const { userId: requestorId, role: requestorRole } = (request as any).user;
+    const projectId = existingTask.projectId;
+
+    let isManager = true;
+    try {
+      await verifyProjectManagerAccess(projectId, requestorId, requestorRole);
+    } catch {
+      isManager = false;
+    }
+
+    if (!isManager) {
+      // Collaborators are restricted to only modifying status
+      const keys = Object.keys(body).filter((k) => (body as any)[k] !== undefined);
+      const hasOtherChanges = keys.some((k) => k !== 'status');
+      if (hasOtherChanges) {
+        throw new ApiError(
+          403,
+          'Access denied. Only Project Managers can modify details other than task status.',
+        );
+      }
+    }
+
     const task = await updateTask(id, body);
     return successResponse('Task updated successfully.', task);
   }
 
   // DELETE /tasks/:id
   @Delete('{id}')
+  @Security('jwt', ['project:manager'])
   public async deleteExistingTask(@Path() id: string): Promise<ApiResponse<null>> {
     await deleteTask(id);
     return successResponse('Task deleted successfully.', null);

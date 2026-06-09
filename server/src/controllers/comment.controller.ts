@@ -13,6 +13,7 @@ export class CommentController extends Controller {
    * Retrieves all comments for a specific task.
    */
   @Get('{taskId}/comments')
+  @Security('jwt', ['project:member'])
   public async getComments(@Path() taskId: string): Promise<ApiResponse<Comment[]>> {
     const comments = await getCommentsByTaskId(taskId);
     return successResponse('Comments retrieved successfully.', comments);
@@ -22,6 +23,7 @@ export class CommentController extends Controller {
    * Posts a new comment to a specific task.
    */
   @Post('{taskId}/comments')
+  @Security('jwt', ['project:member'])
   public async createComment(
     @Path() taskId: string,
     @Body() body: CreateCommentRequest,
@@ -41,6 +43,7 @@ export class CommentDeleteController extends Controller {
    * Deletes a comment by ID.
    */
   @Delete('{commentId}')
+  @Security('jwt', ['project:member'])
   public async removeComment(
     @Path() commentId: string,
     @Request() request: ExRequest,
