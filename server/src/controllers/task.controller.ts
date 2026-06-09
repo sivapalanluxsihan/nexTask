@@ -76,8 +76,12 @@ export class TaskController extends Controller {
     let isManager = true;
     try {
       await verifyProjectManagerAccess(projectId, requestorId, requestorRole);
-    } catch {
-      isManager = false;
+    } catch (err) {
+      if (err instanceof ApiError && err.statusCode === 403) {
+        isManager = false;
+      } else {
+        throw err;
+      }
     }
 
     if (!isManager) {
