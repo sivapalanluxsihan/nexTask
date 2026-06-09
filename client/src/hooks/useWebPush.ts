@@ -39,6 +39,7 @@ export function useWebPush() {
   // Check current subscription on mount
   useEffect(() => {
     if (isSupported) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       checkCurrentSubscription();
     }
   }, [isSupported, checkCurrentSubscription]);

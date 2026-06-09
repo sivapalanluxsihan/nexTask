@@ -17,6 +17,7 @@ export class AttachmentController extends Controller {
    * Retrieves all attachments for a specific task.
    */
   @Get('{taskId}/attachments')
+  @Security('jwt', ['project:member'])
   public async getAttachments(@Path() taskId: string): Promise<ApiResponse<Attachment[]>> {
     const attachments = await getAttachmentsByTaskId(taskId);
     return successResponse('Attachments retrieved successfully.', attachments);
@@ -26,6 +27,7 @@ export class AttachmentController extends Controller {
    * Uploads file metadata directly to a task.
    */
   @Post('{taskId}/attachments')
+  @Security('jwt', ['project:member'])
   public async uploadAttachmentMetadata(
     @Path() taskId: string,
     @Body() body: CreateAttachmentRequest,
@@ -45,6 +47,7 @@ export class AttachmentDeleteController extends Controller {
    * Deletes an attachment metadata record by ID.
    */
   @Delete('{attachmentId}')
+  @Security('jwt', ['project:member'])
   public async removeAttachment(
     @Path() attachmentId: string,
     @Request() request: ExRequest,

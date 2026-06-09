@@ -678,7 +678,7 @@ export function RegisterRoutes(app: Router) {
                 projectId: {"in":"query","name":"projectId","required":true,"dataType":"string"},
         };
         app.get('/tasks',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(TaskController)),
             ...(fetchMiddlewares<RequestHandler>(TaskController.prototype.getTasks)),
 
@@ -709,7 +709,7 @@ export function RegisterRoutes(app: Router) {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
         };
         app.get('/tasks/:id',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(TaskController)),
             ...(fetchMiddlewares<RequestHandler>(TaskController.prototype.getTask)),
 
@@ -740,7 +740,7 @@ export function RegisterRoutes(app: Router) {
                 body: {"in":"body","name":"body","required":true,"ref":"CreateTaskRequest"},
         };
         app.post('/tasks',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:manager"]}]),
             ...(fetchMiddlewares<RequestHandler>(TaskController)),
             ...(fetchMiddlewares<RequestHandler>(TaskController.prototype.createNewTask)),
 
@@ -770,9 +770,10 @@ export function RegisterRoutes(app: Router) {
         const argsTaskController_updateExistingTask: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateTaskRequest"},
+                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.put('/tasks/:id',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(TaskController)),
             ...(fetchMiddlewares<RequestHandler>(TaskController.prototype.updateExistingTask)),
 
@@ -803,7 +804,7 @@ export function RegisterRoutes(app: Router) {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
         };
         app.delete('/tasks/:id',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:manager"]}]),
             ...(fetchMiddlewares<RequestHandler>(TaskController)),
             ...(fetchMiddlewares<RequestHandler>(TaskController.prototype.deleteExistingTask)),
 
@@ -929,7 +930,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.post('/projects',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["global:pm"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.create)),
 
@@ -989,10 +990,9 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsProjectController_getById: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
-                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.get('/projects/:id',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.getById)),
 
@@ -1022,10 +1022,9 @@ export function RegisterRoutes(app: Router) {
         const argsProjectController_update: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"UpdateProjectRequest"},
-                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.put('/projects/:id',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:manager"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.update)),
 
@@ -1054,10 +1053,9 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsProjectController_complete: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
-                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.patch('/projects/:id/complete',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:manager"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.complete)),
 
@@ -1086,10 +1084,9 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsProjectController_archive: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
-                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.patch('/projects/:id/archive',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:manager"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.archive)),
 
@@ -1118,10 +1115,9 @@ export function RegisterRoutes(app: Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsProjectController_delete: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
-                request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.delete('/projects/:id',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["global:admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.delete)),
 
@@ -1154,7 +1150,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.post('/projects/:id/members',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:manager"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController.prototype.addMember)),
 
@@ -1186,7 +1182,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.get('/projects/:id/members',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController.prototype.getMembers)),
 
@@ -1219,7 +1215,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.get('/projects/:id/members/:userId',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController.prototype.getMemberDetails)),
 
@@ -1253,7 +1249,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.patch('/projects/:id/members/:userId',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:manager"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController.prototype.updateMemberRole)),
 
@@ -1286,7 +1282,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.patch('/projects/:id/members/:userId/project-manager',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["global:admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController.prototype.assignProjectManager)),
 
@@ -1319,7 +1315,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.patch('/projects/:id/members/:userId/collaborator',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:manager"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController.prototype.assignCollaborator)),
 
@@ -1352,7 +1348,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.delete('/projects/:id/members/:userId',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:manager"]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController)),
             ...(fetchMiddlewares<RequestHandler>(ProjectMemberController.prototype.removeMember)),
 
@@ -1412,7 +1408,7 @@ export function RegisterRoutes(app: Router) {
                 taskId: {"in":"path","name":"taskId","required":true,"dataType":"string"},
         };
         app.get('/tasks/:taskId/comments',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(CommentController)),
             ...(fetchMiddlewares<RequestHandler>(CommentController.prototype.getComments)),
 
@@ -1445,7 +1441,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.post('/tasks/:taskId/comments',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(CommentController)),
             ...(fetchMiddlewares<RequestHandler>(CommentController.prototype.createComment)),
 
@@ -1477,7 +1473,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.delete('/comments/:commentId',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(CommentDeleteController)),
             ...(fetchMiddlewares<RequestHandler>(CommentDeleteController.prototype.removeComment)),
 
@@ -1600,7 +1596,7 @@ export function RegisterRoutes(app: Router) {
                 taskId: {"in":"path","name":"taskId","required":true,"dataType":"string"},
         };
         app.get('/tasks/:taskId/attachments',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(AttachmentController)),
             ...(fetchMiddlewares<RequestHandler>(AttachmentController.prototype.getAttachments)),
 
@@ -1633,7 +1629,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.post('/tasks/:taskId/attachments',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(AttachmentController)),
             ...(fetchMiddlewares<RequestHandler>(AttachmentController.prototype.uploadAttachmentMetadata)),
 
@@ -1665,7 +1661,7 @@ export function RegisterRoutes(app: Router) {
                 request: {"in":"request","name":"request","required":true,"dataType":"object"},
         };
         app.delete('/attachments/:attachmentId',
-            authenticateMiddleware([{"jwt":[]}]),
+            authenticateMiddleware([{"jwt":["project:member"]}]),
             ...(fetchMiddlewares<RequestHandler>(AttachmentDeleteController)),
             ...(fetchMiddlewares<RequestHandler>(AttachmentDeleteController.prototype.removeAttachment)),
 

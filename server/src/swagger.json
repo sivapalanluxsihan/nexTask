@@ -1551,7 +1551,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -1584,7 +1586,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:manager"
+						]
 					}
 				],
 				"parameters": [],
@@ -1620,7 +1624,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -1653,7 +1659,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -1696,7 +1704,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:manager"
+						]
 					}
 				],
 				"parameters": [
@@ -1840,7 +1850,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"global:pm"
+						]
 					}
 				],
 				"parameters": [],
@@ -1900,7 +1912,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -1933,7 +1947,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:manager"
+						]
 					}
 				],
 				"parameters": [
@@ -1976,7 +1992,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"global:admin"
+						]
 					}
 				],
 				"parameters": [
@@ -2011,7 +2029,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:manager"
+						]
 					}
 				],
 				"parameters": [
@@ -2046,7 +2066,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:manager"
+						]
 					}
 				],
 				"parameters": [
@@ -2082,7 +2104,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:manager"
+						]
 					}
 				],
 				"parameters": [
@@ -2126,7 +2150,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -2162,7 +2188,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -2204,7 +2232,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:manager"
+						]
 					}
 				],
 				"parameters": [
@@ -2256,7 +2286,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:manager"
+						]
 					}
 				],
 				"parameters": [
@@ -2300,7 +2332,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"global:admin"
+						]
 					}
 				],
 				"parameters": [
@@ -2344,7 +2378,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:manager"
+						]
 					}
 				],
 				"parameters": [
@@ -2407,7 +2443,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -2441,7 +2479,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -2487,7 +2527,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -2615,7 +2657,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -2649,7 +2693,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [
@@ -2695,7 +2741,9 @@
 				],
 				"security": [
 					{
-						"jwt": []
+						"jwt": [
+							"project:member"
+						]
 					}
 				],
 				"parameters": [

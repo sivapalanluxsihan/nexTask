@@ -42,6 +42,7 @@ export class ProjectMemberController extends Controller {
    */
   @Post('/')
   @SuccessResponse('201', 'Created')
+  @Security('jwt', ['project:manager'])
   public async addMember(
     @Path() id: string,
     @Body() body: AddMemberInput,
@@ -63,6 +64,7 @@ export class ProjectMemberController extends Controller {
    * Retrieves all members of the project.
    */
   @Get('/')
+  @Security('jwt', ['project:member'])
   public async getMembers(
     @Path() id: string,
     @Request() request: ExRequest,
@@ -76,6 +78,7 @@ export class ProjectMemberController extends Controller {
    * Retrieves details of a specific project member.
    */
   @Get('{userId}')
+  @Security('jwt', ['project:member'])
   public async getMemberDetails(
     @Path() id: string,
     @Path() userId: string,
@@ -95,6 +98,7 @@ export class ProjectMemberController extends Controller {
    * Updates the role of a project member.
    */
   @Patch('{userId}')
+  @Security('jwt', ['project:manager'])
   public async updateMemberRole(
     @Path() id: string,
     @Path() userId: string,
@@ -117,6 +121,7 @@ export class ProjectMemberController extends Controller {
    * Assigns the Project Manager role to a project member (Admin only).
    */
   @Patch('{userId}/project-manager')
+  @Security('jwt', ['global:admin'])
   public async assignProjectManager(
     @Path() id: string,
     @Path() userId: string,
@@ -138,6 +143,7 @@ export class ProjectMemberController extends Controller {
    * Assigns the Collaborator role to a project member.
    */
   @Patch('{userId}/collaborator')
+  @Security('jwt', ['project:manager'])
   public async assignCollaborator(
     @Path() id: string,
     @Path() userId: string,
@@ -159,6 +165,7 @@ export class ProjectMemberController extends Controller {
    * Removes a member from the project.
    */
   @Delete('{userId}')
+  @Security('jwt', ['project:manager'])
   public async removeMember(
     @Path() id: string,
     @Path() userId: string,

@@ -16,10 +16,6 @@ import {
   Tags,
 } from 'tsoa';
 
-import {
-  verifyProjectManagerAccess,
-  verifyProjectMemberAccess,
-} from '../services/project-member.service';
 import { ProjectService } from '../services/project.service';
 import { ApiError } from '../utils/apiError.util';
 import { ApiResponse, successResponse } from '../utils/response.util';
@@ -38,19 +34,12 @@ export class ProjectController extends Controller {
   // 1. POST /projects (Create a project)
   @Post('/')
   @SuccessResponse('201', 'Created')
+  @Security('jwt', ['global:pm'])
   public async create(
     @Body() requestBody: CreateProjectRequest,
     @Request() request: ExRequest,
   ): Promise<ApiResponse<Project>> {
-    const { userId: requestorId, role: requestorRole } = (request as any).user;
-
-    // Only Admin and Project Manager can create projects
-    if (requestorRole === 'COLLABORATOR') {
-      throw new ApiError(
-        403,
-        'Access denied. Only Admins and Project Managers can create projects.',
-      );
-    }
+    const { userId: requestorId } = (request as any).user;
 
     const newProject = await this.projectService.createProject(
       requestBody.name,
@@ -71,26 +60,20 @@ export class ProjectController extends Controller {
 
   // 3. GET /projects/{id} (View single project by ID)
   @Get('{id}')
-  public async getById(
-    @Path() id: string,
-    @Request() request: ExRequest,
-  ): Promise<ApiResponse<Project>> {
-    const { userId: requestorId, role: requestorRole } = (request as any).user;
-    const project = await verifyProjectMemberAccess(id, requestorId, requestorRole);
-
+  @Security('jwt', ['project:member'])
+  public async getById(@Path() id: string): Promise<ApiResponse<Project>> {
+    const project = await this.projectService.getProjectById(id);
+    if (!project) throw new ApiError(404, 'Project not found.');
     return successResponse('Project retrieved successfully.', project);
   }
 
   // 4. PUT /projects/{id} (Update details)
   @Put('{id}')
+  @Security('jwt', ['project:manager'])
   public async update(
     @Path() id: string,
     @Body() requestBody: UpdateProjectRequest,
-    @Request() request: ExRequest,
   ): Promise<ApiResponse<Project>> {
-    const { userId: requestorId, role: requestorRole } = (request as any).user;
-    await verifyProjectManagerAccess(id, requestorId, requestorRole);
-
     const updatedProject = await this.projectService.updateProject(
       id,
       requestBody.name,
@@ -101,43 +84,24 @@ export class ProjectController extends Controller {
 
   // 5. PATCH /projects/{id}/complete (Complete project)
   @Patch('{id}/complete')
-  public async complete(
-    @Path() id: string,
-    @Request() request: ExRequest,
-  ): Promise<ApiResponse<Project>> {
-    const { userId: requestorId, role: requestorRole } = (request as any).user;
-    await verifyProjectManagerAccess(id, requestorId, requestorRole);
-
+  @Security('jwt', ['project:manager'])
+  public async complete(@Path() id: string): Promise<ApiResponse<Project>> {
     const completedProject = await this.projectService.completeProject(id);
     return successResponse('Project marked as completed.', completedProject);
   }
 
   // 6. PATCH /projects/{id}/archive (Archive project)
   @Patch('{id}/archive')
-  public async archive(
-    @Path() id: string,
-    @Request() request: ExRequest,
-  ): Promise<ApiResponse<Project>> {
-    const { userId: requestorId, role: requestorRole } = (request as any).user;
-    await verifyProjectManagerAccess(id, requestorId, requestorRole);
-
+  @Security('jwt', ['project:manager'])
+  public async archive(@Path() id: string): Promise<ApiResponse<Project>> {
     const archivedProject = await this.projectService.archiveProject(id);
     return successResponse('Project archived successfully.', archivedProject);
   }
 
   // 7. DELETE /projects/{id} (Delete project - Admin Only)
   @Delete('{id}')
-  public async delete(
-    @Path() id: string,
-    @Request() request: ExRequest,
-  ): Promise<ApiResponse<null>> {
-    const { role: requestorRole } = (request as any).user;
-
-    // Project deletion is restricted to system Administrators only
-    if (requestorRole !== 'ADMIN') {
-      throw new ApiError(403, 'Access denied. Only system Administrators can delete projects.');
-    }
-
+  @Security('jwt', ['global:admin'])
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     const project = await this.projectService.getProjectById(id);
     if (!project) throw new ApiError(404, 'Project not found.');
 
