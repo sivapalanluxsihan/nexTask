@@ -152,9 +152,6 @@ export class ProjectMemberService {
     const isSelf = requestorId === userId;
     if (!isSelf) {
       await verifyProjectManagerAccess(projectId, requestorId, requestorRole);
-    } else {
-      const projectExists = await prisma.project.findUnique({ where: { id: projectId } });
-      if (!projectExists) throw new ApiError(404, 'Project not found.');
     }
 
     const member = await prisma.projectMember.findUnique({
