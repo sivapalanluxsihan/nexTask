@@ -217,6 +217,7 @@ export async function bulkAssignUsersToTask(
       where: { taskId },
       orderBy: [{ assignedAt: 'asc' }, { userId: 'asc' }],
     });
+  });
 
   // Notify newly assigned users
   for (const uid of uniqueUserIds) {

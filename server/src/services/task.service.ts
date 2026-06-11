@@ -71,7 +71,7 @@ export const getTaskById = async (id: string): Promise<SharedTask | null> => {
             select: {
               name: true,
               email: true,
-            }
+            },
           },
         },
         orderBy: { assignedAt: 'asc' },
