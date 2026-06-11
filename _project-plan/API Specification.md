@@ -1571,10 +1571,10 @@ Permissions:
 
 #### **1. Assign Task**
 
-- **Endpoint:** `POST /tasks/:id/assignments`
+- **Endpoint:** `POST /tasks/:taskId/assignees`
 - **Access:** Project Manager
 - **Path Parameters:**
-  - `id`: Task ID
+  - `taskId`: Task ID (UUID)
 - **Request Body:**
   ```json
   {
@@ -1585,50 +1585,61 @@ Permissions:
   ```json
   {
     "success": true,
-    "message": "User assigned to task successfully",
+    "message": "User assigned to task successfully.",
     "data": {
       "taskId": "uuid-task-1",
-      "userId": "uuid-user-5"
+      "userId": "uuid-user-5",
+      "assignedAt": "2026-06-11T18:32:17.344Z"
     },
     "errors": null
   }
   ```
 
-#### **2. Reassign Task**
+#### **2. Bulk Assign Users to Task**
 
-- **Endpoint:** `PUT /tasks/:id/assignments/:userId`
+- **Endpoint:** `PUT /tasks/:taskId/assignees`
 - **Access:** Project Manager
 - **Path Parameters:**
-  - `id`: Task ID
-  - `userId`: Assigned User ID to replace
+  - `taskId`: Task ID (UUID)
 - **Request Body:**
   ```json
   {
-    "newUserId": "uuid-user-6"
+    "userIds": ["uuid-user-5", "uuid-user-6"]
   }
   ```
 - **Success Response (200 OK):**
   ```json
   {
     "success": true,
-    "message": "Task assignment updated successfully",
-    "data": null,
+    "message": "Task assignments updated successfully.",
+    "data": [
+      {
+        "taskId": "uuid-task-1",
+        "userId": "uuid-user-5",
+        "assignedAt": "2026-06-11T18:32:22.585Z"
+      },
+      {
+        "taskId": "uuid-task-1",
+        "userId": "uuid-user-6",
+        "assignedAt": "2026-06-11T18:32:22.585Z"
+      }
+    ],
     "errors": null
   }
   ```
 
 #### **3. Remove Assignment**
 
-- **Endpoint:** `DELETE /tasks/:id/assignments/:userId`
+- **Endpoint:** `DELETE /tasks/:taskId/assignees/:userId`
 - **Access:** Project Manager
 - **Path Parameters:**
-  - `id`: Task ID
-  - `userId`: User ID to unassign
+  - `taskId`: Task ID (UUID)
+  - `userId`: User ID to unassign (UUID)
 - **Success Response (200 OK):**
   ```json
   {
     "success": true,
-    "message": "User unassigned from task successfully",
+    "message": "User unassigned from task successfully.",
     "data": null,
     "errors": null
   }
@@ -1636,20 +1647,21 @@ Permissions:
 
 #### **4. View Task Assignees**
 
-- **Endpoint:** `GET /tasks/:id/assignments`
-- **Access:** Project Manager
+- **Endpoint:** `GET /tasks/:taskId/assignees`
+- **Access:** Project Member
 - **Path Parameters:**
-  - `id`: Task ID
+  - `taskId`: Task ID (UUID)
 - **Success Response (200 OK):**
   ```json
   {
     "success": true,
-    "message": "Operation completed successfully",
+    "message": "Task assignees retrieved successfully.",
     "data": [
       {
-        "id": "uuid-user-5",
+        "userId": "uuid-user-5",
         "name": "Jane Smith",
-        "email": "jane@example.com"
+        "email": "jane@example.com",
+        "assignedAt": "2026-06-11T18:32:17.344Z"
       }
     ],
     "errors": null
