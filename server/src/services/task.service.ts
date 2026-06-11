@@ -65,6 +65,17 @@ export const getTaskById = async (id: string): Promise<SharedTask | null> => {
       attachments: {
         orderBy: { createdAt: 'desc' },
       },
+      assignments: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { assignedAt: 'asc' },
+      },
     },
   });
 
@@ -93,6 +104,12 @@ export const getTaskById = async (id: string): Promise<SharedTask | null> => {
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
     attachments: attachmentsWithUrls,
+    assignees: task.assignments.map((a) => ({
+      userId: a.userId,
+      name: a.user.name,
+      email: a.user.email,
+      assignedAt: a.assignedAt,
+    })),
   };
 };
 
