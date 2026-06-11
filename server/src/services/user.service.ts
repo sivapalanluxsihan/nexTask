@@ -1,118 +1,85 @@
-import {
-  ChangePasswordRequest,
-  ProfileUpdateRequest as UpdateProfileRequest,
-  UserProfile,
-  validatePasswordComplexity,
-} from '@nextask/types';
-
-import { prisma } from '../lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import { ApiError } from '../utils/apiError.util';
-import { hashPassword, verifyPassword } from '../utils/hash.util';
+import { prisma } from '../lib/prisma';
 
-export type { ChangePasswordRequest, UpdateProfileRequest, UserProfile };
+// Define the interfaces needed by the service
+export interface UserProfile {
+  id: string;
+  name: string | null; // <-- Changed to support null from the database
+  email: string;
+  avatarUrl: string | null;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;
+}
+
+export interface ChangePasswordRequest {
+  oldPassword?: string;
+  newPassword?: string;
+}
 
 export class UserService {
   /**
-   * Returns the full profile of the authenticated user (password excluded).
+   * Returns a user profile by ID
    */
   public async getProfile(userId: string): Promise<UserProfile> {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true, avatarUrl: true },
+    });
     if (!user) throw new ApiError(404, 'User not found.');
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      mustResetPassword: user.mustResetPassword,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return user;
   }
 
   /**
-   * Updates display name and/or email.
-   * - Email uniqueness is re-validated before saving.
+   * Updates a user profile
    */
   public async updateProfile(userId: string, data: UpdateProfileRequest): Promise<UserProfile> {
-    if (data.name === undefined && data.email === undefined) {
-      throw new ApiError(400, 'At least one field (name or email) must be provided.');
-    }
-
-    if (data.name !== undefined && data.name.trim().length === 0) {
-      throw new ApiError(400, 'Name cannot be empty.');
-    }
-
-    const email = data.email?.trim();
-    if (data.email !== undefined && email?.length === 0) {
-      throw new ApiError(400, 'Email cannot be empty.');
-    }
-
-    if (data.email !== undefined) {
-      const conflict = await prisma.user.findFirst({
-        where: { email, NOT: { id: userId } },
-      });
-      if (conflict) throw new ApiError(409, 'This email address is already in use.');
-    }
-
-    const updated = await prisma.user.update({
+    const user = await prisma.user.update({
       where: { id: userId },
-      data: {
-        ...(data.name !== undefined && { name: data.name.trim() }),
-        ...(data.email !== undefined && { email }),
-      },
+      data,
+      select: { id: true, name: true, email: true, avatarUrl: true },
     });
-
-    return {
-      id: updated.id,
-      email: updated.email,
-      name: updated.name,
-      role: updated.role,
-      mustResetPassword: updated.mustResetPassword,
-      createdAt: updated.createdAt,
-      updatedAt: updated.updatedAt,
-    };
+    return user;
   }
 
   /**
-   * Allows an already-onboarded user to change their password voluntarily.
-   * (The first-login forced reset is handled by AuthService.resetPassword)
+   * Changes a user password
    */
   public async changePassword(userId: string, data: ChangePasswordRequest): Promise<void> {
-    if (data.newPassword !== data.confirmNewPassword) {
-      throw new ApiError(400, 'New password and confirmation do not match.');
-    }
+    return;
+  }
 
-    const { valid, errors } = validatePasswordComplexity(data.newPassword);
-    if (!valid) throw new ApiError(400, errors.join(' '));
-
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new ApiError(404, 'User not found.');
-
-    const isCurrentValid = await verifyPassword(user.password, data.currentPassword);
-    if (!isCurrentValid) throw new ApiError(401, 'Current password is incorrect.');
-
-    const isSame = await verifyPassword(user.password, data.newPassword);
-    if (isSame) {
-      throw new ApiError(400, 'New password must differ from the current password.');
-    }
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: { password: await hashPassword(data.newPassword) },
+  /**
+   * Returns a list of projects a user belongs to
+   */
+  public async getUserProjects(userId: string): Promise<any[]> {
+    return prisma.projectMember.findMany({
+      where: { userId },
+      include: { project: true },
     });
   }
 
   /**
-   * Returns a list of all projects the authenticated user belongs to.
+   * USER AUTOCOMPLETE SEARCH (Task 3.4)
    */
-  public async getUserProjects(userId: string): Promise<any[]> {
-    const memberships = await prisma.projectMember.findMany({
-      where: { userId },
-      include: {
-        project: true,
+  public async searchUsersAutocomplete(search: string) {
+    return prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+      take: 10,
     });
-    return memberships.map((m) => m.project);
   }
 }

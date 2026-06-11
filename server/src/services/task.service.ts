@@ -1,5 +1,5 @@
 import { CreateTaskRequest, Task as SharedTask, UpdateTaskRequest } from '@nextask/types';
-import { Status, Task } from '@prisma/client';
+import { Status, Priority, Task } from '@prisma/client';
 
 import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/apiError.util';
@@ -14,7 +14,6 @@ export const createTask = async (data: CreateTaskInput): Promise<Task> => {
     throw new ApiError(400, 'Due date must be in the future.');
   }
 
-  // Validate project exists
   const projectExists = await prisma.project.findUnique({
     where: { id: data.projectId },
   });
@@ -22,7 +21,6 @@ export const createTask = async (data: CreateTaskInput): Promise<Task> => {
     throw new ApiError(400, 'Referenced project does not exist.');
   }
 
-  // Calculate default position if not provided
   let taskPosition = data.position;
   if (taskPosition === undefined) {
     const taskStatus = data.status || Status.TODO;
@@ -49,14 +47,30 @@ export const createTask = async (data: CreateTaskInput): Promise<Task> => {
   return task;
 };
 
-// GET ALL
-export const getAllTasks = async (projectId: string): Promise<Task[]> => {
+// GET ALL WITH SEARCH AND FILTERS (Task 3.4)
+export const getAllTasks = async (
+  projectId: string,
+  search?: string,
+  status?: string,
+  priority?: string,
+  tags?: string[]
+): Promise<Task[]> => {
   return prisma.task.findMany({
-    where: { projectId },
+    where: {
+      projectId,
+      status: status ? (status as Status) : undefined,
+      priority: priority ? (priority as Priority) : undefined, // <-- Casts the string safely here
+      tags: tags && tags.length > 0 ? { hasSome: tags } : undefined,
+      OR: search
+        ? [
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+          ]
+        : undefined,
+    },
     orderBy: { position: 'asc' },
   });
 };
-
 // GET ONE
 export const getTaskById = async (id: string): Promise<SharedTask | null> => {
   const task = await prisma.task.findUnique({
@@ -105,7 +119,6 @@ export const updateTask = async (id: string, data: UpdateTaskInput): Promise<Tas
   const existing = await prisma.task.findUnique({ where: { id } });
   if (!existing) throw new ApiError(404, 'Task not found.');
 
-  // If status changes and position is not provided, compute status-specific position
   let taskPosition = data.position;
   if (data.status && data.status !== existing.status && taskPosition === undefined) {
     const lastTask = await prisma.task.findFirst({
