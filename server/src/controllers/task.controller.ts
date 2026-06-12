@@ -32,11 +32,17 @@ import { ApiResponse, successResponse } from '../utils/response.util';
 @Tags('Tasks')
 @Security('jwt')
 export class TaskController extends Controller {
-  // GET /tasks
+  // GET /tasks with Query Filtering (Task 3.4)
   @Get('/')
   @Security('jwt', ['project:member'])
-  public async getTasks(@Query() projectId: string): Promise<ApiResponse<Task[]>> {
-    const tasks = await getAllTasks(projectId);
+  public async getTasks(
+    @Query() projectId: string,
+    @Query() search?: string,
+    @Query() status?: SharedTask['status'],
+    @Query() priority?: SharedTask['priority'],
+    @Query() tags?: string[],
+  ): Promise<ApiResponse<Task[]>> {
+    const tasks = await getAllTasks(projectId, search, status, priority, tags);
     return successResponse('Tasks retrieved successfully.', tasks);
   }
 
@@ -85,7 +91,6 @@ export class TaskController extends Controller {
     }
 
     if (!isManager) {
-      // Collaborators are restricted to only modifying status
       const keys = Object.keys(body).filter((k) => (body as any)[k] !== undefined);
       const hasOtherChanges = keys.some((k) => k !== 'status');
       if (hasOtherChanges) {

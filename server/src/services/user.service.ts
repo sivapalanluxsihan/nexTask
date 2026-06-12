@@ -104,7 +104,7 @@ export class UserService {
   }
 
   /**
-   * Returns a list of all projects the authenticated user belongs to.
+   * Returns a list of projects a user belongs to
    */
   public async getUserProjects(userId: string): Promise<any[]> {
     const memberships = await prisma.projectMember.findMany({
@@ -114,5 +114,36 @@ export class UserService {
       },
     });
     return memberships.map((m) => m.project);
+  }
+
+  /**
+   * USER AUTOCOMPLETE SEARCH (Task 3.4)
+   */
+  public async searchUsersAutocomplete(projectId: string, search: string) {
+    return prisma.user.findMany({
+      where: {
+        AND: [
+          {
+            projectMemberships: {
+              some: {
+                projectId,
+              },
+            },
+          },
+          {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+      take: 10,
+    });
   }
 }
