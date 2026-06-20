@@ -1,4 +1,3 @@
-import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
 import {
   DndContext,
   DragEndEvent,
@@ -15,6 +14,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Task, UpdateTaskRequest } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  BarChart2,
   Check,
   ChevronDown,
   Filter,
@@ -28,13 +28,13 @@ import {
   Search,
   Send,
   Sun,
-  BarChart2,
   Trash2,
   UserPlus,
   Users,
   X,
 } from 'lucide-react';
 import React, { useState } from 'react';
+
 import {
   createTaskAttachment,
   deleteAttachment,
@@ -63,6 +63,7 @@ import {
   mapStatusToFrontend,
   updateTask,
 } from '../api/tasks.api';
+import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle } from '../components/ui/card';
@@ -119,17 +120,15 @@ function KanbanColumn({
     status === 'To Do'
       ? 'text-muted-foreground'
       : status === 'In Progress'
-      ? 'text-blue-500'
-      : 'text-emerald-500';
+        ? 'text-blue-500'
+        : 'text-emerald-500';
 
   return (
     <div
       ref={setNodeRef}
       className={`w-80 shrink-0 rounded-xl p-4 flex flex-col transition-all ${bgClass}`}
     >
-      <h2 className={`text-sm font-bold uppercase tracking-widest mb-4 ${headerColor}`}>
-        {title}
-      </h2>
+      <h2 className={`text-sm font-bold uppercase tracking-widest mb-4 ${headerColor}`}>{title}</h2>
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-3 pr-4 min-h-[200px]">{children}</div>
       </ScrollArea>
@@ -161,8 +160,8 @@ function TaskCard({ task, onClick }: { task: FrontendTask; onClick: () => void }
                 task.priority === 'High'
                   ? 'destructive'
                   : task.priority === 'Medium'
-                  ? 'default'
-                  : 'secondary'
+                    ? 'default'
+                    : 'secondary'
               }
             >
               {task.priority}
@@ -425,9 +424,7 @@ export function Dashboard() {
     },
   });
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveTask(tasks.find((t) => t.id === event.active.id) || null);
@@ -684,7 +681,9 @@ export function Dashboard() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
-              <DropdownMenuItem onClick={() => setStatusFilter(null)}>All Statuses</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter(null)}>
+                All Statuses
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setStatusFilter('To Do')}>To Do</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setStatusFilter('In Progress')}>
                 In Progress
@@ -710,7 +709,9 @@ export function Dashboard() {
                 All Priorities
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setPriorityFilter('Low')}>Low</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPriorityFilter('Medium')}>Medium</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPriorityFilter('Medium')}>
+                Medium
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setPriorityFilter('High')}>High</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -773,8 +774,8 @@ export function Dashboard() {
                         activeTask.priority === 'High'
                           ? 'destructive'
                           : activeTask.priority === 'Medium'
-                          ? 'default'
-                          : 'secondary'
+                            ? 'default'
+                            : 'secondary'
                       }
                     >
                       {activeTask.priority}
@@ -819,8 +820,8 @@ export function Dashboard() {
                           task.status === 'Done'
                             ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                             : task.status === 'In Progress'
-                            ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                            : 'bg-muted text-muted-foreground border-border'
+                              ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                              : 'bg-muted text-muted-foreground border-border'
                         }`}
                       >
                         {task.status}
@@ -832,8 +833,8 @@ export function Dashboard() {
                           task.priority === 'High'
                             ? 'destructive'
                             : task.priority === 'Medium'
-                            ? 'default'
-                            : 'secondary'
+                              ? 'default'
+                              : 'secondary'
                         }
                       >
                         {task.priority}
@@ -1213,7 +1214,9 @@ export function Dashboard() {
                             className="p-2.5 hover:bg-muted text-sm text-foreground cursor-pointer flex justify-between items-center"
                           >
                             <span className="font-medium">{u.name || u.email}</span>
-                            {u.name && <span className="text-xs text-muted-foreground">{u.email}</span>}
+                            {u.name && (
+                              <span className="text-xs text-muted-foreground">{u.email}</span>
+                            )}
                           </div>
                         ))}
                       </div>
