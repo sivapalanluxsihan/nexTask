@@ -51,7 +51,7 @@ export class TaskController extends Controller {
     @Query() status?: SharedTask['status'],
     @Query() priority?: SharedTask['priority'],
     @Query() tags?: string[],
-  ): Promise<ApiResponse<Task[]>> {
+  ): Promise<ApiResponse<SharedTask[]>> {
     const tasks = await getAllTasks(projectId, search, status, priority, tags);
     return successResponse('Tasks retrieved successfully.', tasks);
   }

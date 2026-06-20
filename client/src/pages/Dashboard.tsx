@@ -1,3 +1,4 @@
+import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
 import {
   DndContext,
   DragEndEvent,
@@ -27,13 +28,13 @@ import {
   Search,
   Send,
   Sun,
+  BarChart2,
   Trash2,
   UserPlus,
   Users,
   X,
 } from 'lucide-react';
 import React, { useState } from 'react';
-
 import {
   createTaskAttachment,
   deleteAttachment,
@@ -100,8 +101,7 @@ export interface FrontendTask extends Omit<Task, 'priority' | 'status'> {
   status: string;
 }
 
-// ─── Kanban Column Component ──────────────────────────────────────────────────
-
+// Kanban Column Component
 function KanbanColumn({
   title,
   status,
@@ -119,15 +119,17 @@ function KanbanColumn({
     status === 'To Do'
       ? 'text-muted-foreground'
       : status === 'In Progress'
-        ? 'text-blue-500'
-        : 'text-emerald-500';
+      ? 'text-blue-500'
+      : 'text-emerald-500';
 
   return (
     <div
       ref={setNodeRef}
       className={`w-80 shrink-0 rounded-xl p-4 flex flex-col transition-all ${bgClass}`}
     >
-      <h2 className={`text-sm font-bold uppercase tracking-widest mb-4 ${headerColor}`}>{title}</h2>
+      <h2 className={`text-sm font-bold uppercase tracking-widest mb-4 ${headerColor}`}>
+        {title}
+      </h2>
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-3 pr-4 min-h-[200px]">{children}</div>
       </ScrollArea>
@@ -135,14 +137,16 @@ function KanbanColumn({
   );
 }
 
-// ─── Task Card Component ───────────────────────────────────────────────────────
-
+// Task Card Component
 function TaskCard({ task, onClick }: { task: FrontendTask; onClick: () => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
     data: { task },
   });
-  const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.3 : 1 };
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.3 : 1,
+  };
 
   return (
     <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
@@ -157,8 +161,8 @@ function TaskCard({ task, onClick }: { task: FrontendTask; onClick: () => void }
                 task.priority === 'High'
                   ? 'destructive'
                   : task.priority === 'Medium'
-                    ? 'default'
-                    : 'secondary'
+                  ? 'default'
+                  : 'secondary'
               }
             >
               {task.priority}
@@ -174,12 +178,10 @@ function TaskCard({ task, onClick }: { task: FrontendTask; onClick: () => void }
   );
 }
 
-// ─── Main Dashboard Page ───────────────────────────────────────────────────────
-
+// Main Dashboard Page
 export function Dashboard() {
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
-
   const user = useAuthStore((s) => s.user);
   const [activeTask, setActiveTask] = useState<FrontendTask | null>(null);
   const [selectedTask, setSelectedTask] = useState<FrontendTask | null>(null);
@@ -189,7 +191,7 @@ export function Dashboard() {
     description: '',
     priority: 'Medium',
   });
-  const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
+  const [viewMode, setViewMode] = useState<'board' | 'table' | 'analytics'>('board');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
@@ -198,8 +200,8 @@ export function Dashboard() {
 
   // Global Project Switcher store
   const { activeProjectId, setActiveProjectId } = useProjectStore();
-
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
@@ -215,8 +217,7 @@ export function Dashboard() {
     'COLLABORATOR',
   );
 
-  // ─── Project & Task Queries ────────────────────────────────────────────────
-
+  // Project & Task Queries
   const { data: projects = [], isLoading: isProjectsLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: fetchUserProjects,
@@ -229,8 +230,6 @@ export function Dashboard() {
 
   React.useEffect(() => {
     if (projects.length === 0) return;
-
-    // Normalize persisted selection (e.g. user removed from a project)
     if (activeProjectIdResolved && activeProjectIdResolved !== activeProjectId) {
       setActiveProjectId(activeProjectIdResolved);
     }
@@ -253,6 +252,7 @@ export function Dashboard() {
   });
 
   const currentUserMembership = projectMembers.find((m: any) => m.userId === user?.id);
+
   const isProjectManager =
     user?.role === 'ADMIN' ||
     activeProject?.ownerId === user?.id ||
@@ -304,32 +304,24 @@ export function Dashboard() {
         statusFilter,
         priorityFilter,
       ];
-
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey });
-
-      // Snapshot current tasks
       const previousTasks = queryClient.getQueryData<any[]>(queryKey);
 
-      // Optimistically update query cache
       if (previousTasks && payload.status) {
         queryClient.setQueryData<any[]>(
           queryKey,
           previousTasks.map((t) => (t.id === id ? { ...t, status: payload.status } : t)),
         );
       }
-
       return { previousTasks, queryKey };
     },
     onError: (_err, _variables, context) => {
-      // Revert to snapshot on failure
       if (context?.previousTasks) {
         queryClient.setQueryData(context.queryKey, context.previousTasks);
       }
       useToastStore.getState().showError('Failed to move task.');
     },
     onSettled: (_data, _error, _variables, context) => {
-      // Trigger background sync
       if (context?.queryKey) {
         queryClient.invalidateQueries({ queryKey: context.queryKey });
       }
@@ -345,7 +337,6 @@ export function Dashboard() {
     },
   });
 
-  // Project Members mutations
   const addMemberMutation = useMutation({
     mutationFn: (body: { userId: string; role: 'PROJECT_MANAGER' | 'COLLABORATOR' }) =>
       addProjectMember(activeProjectIdResolved!, body),
@@ -374,7 +365,6 @@ export function Dashboard() {
     },
   });
 
-  // Task Assignee mutations
   const assignUserMutation = useMutation({
     mutationFn: (userId: string) => assignTaskUser(selectedTask!.id, userId),
     onSuccess: () => {
@@ -393,8 +383,6 @@ export function Dashboard() {
     },
   });
 
-  // ─── Selected Task Detail Query ─────────────────────────────────────────────
-
   const { data: taskDetails, refetch: refetchTaskDetails } = useQuery({
     queryKey: ['task', selectedTask?.id],
     queryFn: () => fetchTaskById(selectedTask!.id),
@@ -408,8 +396,6 @@ export function Dashboard() {
         priority: mapPriorityToFrontend(taskDetails.priority),
       }
     : null;
-
-  // ─── Comment Queries & Mutations ────────────────────────────────────────────
 
   const { data: comments = [], refetch: refetchComments } = useQuery({
     queryKey: ['comments', selectedTask?.id],
@@ -432,8 +418,6 @@ export function Dashboard() {
     },
   });
 
-  // ─── Attachment Mutations ───────────────────────────────────────────────────
-
   const deleteAttachmentMutation = useMutation({
     mutationFn: deleteAttachment,
     onSuccess: () => {
@@ -441,9 +425,9 @@ export function Dashboard() {
     },
   });
 
-  // ─── Event Handlers ──────────────────────────────────────────────────────────
-
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveTask(tasks.find((t) => t.id === event.active.id) || null);
@@ -457,8 +441,8 @@ export function Dashboard() {
     const taskId = active.id as string;
     const newStatus = mapStatusToBackend(over.id as string);
     const current = tasks.find((t) => t.id === taskId);
-    if (current && mapStatusToBackend(current.status) === newStatus) return;
 
+    if (current && mapStatusToBackend(current.status) === newStatus) return;
     updateTaskMutation.mutate({
       id: taskId,
       payload: { status: newStatus },
@@ -497,20 +481,17 @@ export function Dashboard() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedTask?.id) return;
-
     setIsUploading(true);
+
     try {
-      // 1. Fetch Presigned PUT Upload URL
       const { uploadUrl, fileKey } = await getPresignedUploadUrl({
         filename: file.name,
         mimeType: file.type || 'application/octet-stream',
         fileSize: file.size,
       });
 
-      // 2. Upload Binary Directly to S3 (No JWT Headers)
       await uploadFileToS3(uploadUrl, file);
 
-      // 3. Register Attachment Metadata in DB
       await createTaskAttachment(selectedTask.id, {
         filename: file.name,
         fileKey,
@@ -542,8 +523,6 @@ export function Dashboard() {
       minute: '2-digit',
     });
   };
-
-  // ─── Filter Tasks ────────────────────────────────────────────────────────────
 
   const filteredTasks = tasks;
 
@@ -630,7 +609,6 @@ export function Dashboard() {
         <div className="flex items-center gap-4">
           <div className="flex bg-muted/50 p-1 rounded-lg border border-border mr-2">
             <Button
-              variant="ghost"
               size="sm"
               onClick={() => setViewMode('board')}
               className={
@@ -653,8 +631,19 @@ export function Dashboard() {
             >
               <List className="h-4 w-4 mr-2" /> List
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('analytics')}
+              className={
+                viewMode === 'analytics'
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }
+            >
+              <BarChart2 className="h-4 w-4 mr-2" /> Analytics
+            </Button>
           </div>
-
           <Button
             variant="outline"
             size="icon"
@@ -663,7 +652,6 @@ export function Dashboard() {
           >
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
-
           <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" /> New Task
           </Button>
@@ -671,77 +659,79 @@ export function Dashboard() {
       </div>
 
       {/* Unified Filters Bar */}
-      <div className="mb-6 flex flex-wrap items-center gap-3 bg-muted/20 p-3 rounded-xl border border-border">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search tasks..."
-            className="pl-9 bg-background border-border text-foreground"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {viewMode !== 'analytics' && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 bg-muted/20 p-3 rounded-xl border border-border">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search tasks..."
+              className="pl-9 bg-background border-border text-foreground"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Status Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-background border-border text-foreground hover:bg-muted"
+              >
+                <Filter className="mr-2 h-4 w-4 text-primary" />
+                <span>Status: {statusFilter || 'All'}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
+              <DropdownMenuItem onClick={() => setStatusFilter(null)}>All Statuses</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter('To Do')}>To Do</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter('In Progress')}>
+                In Progress
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter('Done')}>Done</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Priority Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-background border-border text-foreground hover:bg-muted"
+              >
+                <Filter className="mr-2 h-4 w-4 text-primary" />
+                <span>Priority: {priorityFilter || 'All'}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
+              <DropdownMenuItem onClick={() => setPriorityFilter(null)}>
+                All Priorities
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPriorityFilter('Low')}>Low</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPriorityFilter('Medium')}>Medium</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPriorityFilter('High')}>High</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Clear Filters */}
+          {(searchQuery || statusFilter || priorityFilter) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter(null);
+                setPriorityFilter(null);
+              }}
+              className="text-muted-foreground hover:text-foreground text-xs font-semibold"
+            >
+              Clear Filters
+            </Button>
+          )}
         </div>
-
-        {/* Status Filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-background border-border text-foreground hover:bg-muted"
-            >
-              <Filter className="mr-2 h-4 w-4 text-primary" />
-              <span>Status: {statusFilter || 'All'}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
-            <DropdownMenuItem onClick={() => setStatusFilter(null)}>All Statuses</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter('To Do')}>To Do</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter('In Progress')}>
-              In Progress
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter('Done')}>Done</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Priority Filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-background border-border text-foreground hover:bg-muted"
-            >
-              <Filter className="mr-2 h-4 w-4 text-primary" />
-              <span>Priority: {priorityFilter || 'All'}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
-            <DropdownMenuItem onClick={() => setPriorityFilter(null)}>
-              All Priorities
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setPriorityFilter('Low')}>Low</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setPriorityFilter('Medium')}>Medium</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setPriorityFilter('High')}>High</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Clear Filters */}
-        {(searchQuery || statusFilter || priorityFilter) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSearchQuery('');
-              setStatusFilter(null);
-              setPriorityFilter(null);
-            }}
-            className="text-muted-foreground hover:text-foreground text-xs font-semibold"
-          >
-            Clear Filters
-          </Button>
-        )}
-      </div>
+      )}
 
       {viewMode === 'board' ? (
         <DndContext
@@ -783,15 +773,12 @@ export function Dashboard() {
                         activeTask.priority === 'High'
                           ? 'destructive'
                           : activeTask.priority === 'Medium'
-                            ? 'default'
-                            : 'secondary'
+                          ? 'default'
+                          : 'secondary'
                       }
                     >
                       {activeTask.priority}
                     </Badge>
-                    <span className="text-muted-foreground text-xs">
-                      #{activeTask.id.substring(0, 8) || activeTask.id}
-                    </span>
                   </div>
                   <CardTitle className="text-sm font-medium leading-snug">
                     {activeTask.title}
@@ -801,7 +788,7 @@ export function Dashboard() {
             ) : null}
           </DragOverlay>
         </DndContext>
-      ) : (
+      ) : viewMode === 'table' ? (
         <div className="border border-border rounded-xl overflow-hidden bg-card">
           <Table>
             <TableHeader className="bg-muted/50">
@@ -832,8 +819,8 @@ export function Dashboard() {
                           task.status === 'Done'
                             ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                             : task.status === 'In Progress'
-                              ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                              : 'bg-muted text-muted-foreground border-border'
+                            ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                            : 'bg-muted text-muted-foreground border-border'
                         }`}
                       >
                         {task.status}
@@ -845,8 +832,8 @@ export function Dashboard() {
                           task.priority === 'High'
                             ? 'destructive'
                             : task.priority === 'Medium'
-                              ? 'default'
-                              : 'secondary'
+                            ? 'default'
+                            : 'secondary'
                         }
                       >
                         {task.priority}
@@ -864,13 +851,14 @@ export function Dashboard() {
             </TableBody>
           </Table>
         </div>
+      ) : (
+        <AnalyticsDashboard tasks={serverTasks || []} />
       )}
 
       {/* ─── MODAL 1: VIEW TASK DETAILS ────────────────────────────────────────── */}
       <Dialog open={!!selectedTask} onOpenChange={() => setSelectedTask(null)}>
         <DialogContent className="max-w-4xl bg-background border-border text-foreground p-0 overflow-hidden">
-          <div className="flex h-[600px]">
-            {/* Modal Left: Task & Attachments Details */}
+          <div className="flex h-[80vh]">
             <div className="flex-1 p-8 border-r border-border space-y-6 overflow-y-auto">
               <DialogHeader>
                 <div className="flex justify-between items-start">
@@ -910,12 +898,10 @@ export function Dashboard() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          variant="outline"
                           size="sm"
                           className="h-8 border-border bg-background hover:bg-muted text-foreground flex items-center gap-1.5"
                         >
-                          <UserPlus size={14} />
-                          <span>Manage Assignees</span>
+                          <UserPlus size={14} /> <span>Manage Assignees</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-popover border-border text-popover-foreground w-64 max-h-60 overflow-y-auto">
@@ -938,22 +924,14 @@ export function Dashboard() {
                               <span className="truncate">
                                 {member.user?.name || member.user?.email || 'Unknown User'}
                               </span>
-                              {isAssigned && (
-                                <Check size={14} className="text-primary shrink-0 ml-2" />
-                              )}
+                              {isAssigned && <Check size={14} className="text-primary" />}
                             </DropdownMenuItem>
                           );
                         })}
-                        {projectMembers.length === 0 && (
-                          <div className="p-2 text-xs text-muted-foreground text-center">
-                            No project members to assign.
-                          </div>
-                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
                 </div>
-
                 <div className="flex flex-wrap gap-2">
                   {mappedSelectedTask?.assignees && mappedSelectedTask.assignees.length > 0 ? (
                     mappedSelectedTask.assignees.map((assignee) => (
@@ -986,10 +964,6 @@ export function Dashboard() {
 
               {/* Task S3 Attachments Box */}
               <div className="space-y-4 pt-4 mt-8 border-t border-border/50">
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  Attachments
-                </h4>
-
                 <input
                   type="file"
                   id="file-upload"
@@ -997,7 +971,6 @@ export function Dashboard() {
                   onChange={handleFileChange}
                   disabled={isUploading}
                 />
-
                 <div
                   onClick={() => !isUploading && document.getElementById('file-upload')?.click()}
                   className={`border-2 border-dashed border-border bg-muted/30 rounded-xl p-6 text-center hover:border-primary hover:bg-primary/5 transition-all ${
@@ -1055,12 +1028,16 @@ export function Dashboard() {
                               </a>
                             )}
                           </div>
-                          <button
-                            onClick={() => handleDeleteAttachment(att.id)}
-                            className="absolute top-2 right-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          {isProjectManager && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDeleteAttachment(att.id)}
+                            >
+                              <X size={12} />
+                            </Button>
+                          )}
                         </div>
                       );
                     })}
@@ -1095,12 +1072,14 @@ export function Dashboard() {
                         <p className="text-foreground leading-relaxed text-xs wrap-break-word">
                           {comment.content}
                         </p>
-                        <button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          className="absolute bottom-2 right-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 size={12} />
-                        </button>
+                        {isProjectManager && (
+                          <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="absolute bottom-2 right-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1143,7 +1122,6 @@ export function Dashboard() {
               Fill out the details below to add a new task to the board.
             </DialogDescription>
           </DialogHeader>
-
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Task Title</label>
@@ -1154,7 +1132,6 @@ export function Dashboard() {
                 onChange={(e) => setNewTaskForm({ ...newTaskForm, title: e.target.value })}
               />
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Priority</label>
               <select
@@ -1167,7 +1144,6 @@ export function Dashboard() {
                 <option value="High">High Priority</option>
               </select>
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Description</label>
               <Textarea
@@ -1178,7 +1154,6 @@ export function Dashboard() {
               />
             </div>
           </div>
-
           <DialogFooter>
             <Button
               variant="ghost"
@@ -1238,24 +1213,20 @@ export function Dashboard() {
                             className="p-2.5 hover:bg-muted text-sm text-foreground cursor-pointer flex justify-between items-center"
                           >
                             <span className="font-medium">{u.name || u.email}</span>
-                            {u.name && (
-                              <span className="text-xs text-muted-foreground">{u.email}</span>
-                            )}
+                            {u.name && <span className="text-xs text-muted-foreground">{u.email}</span>}
                           </div>
                         ))}
                       </div>
                     )}
                 </div>
-
                 <select
                   value={newMemberRole}
                   onChange={(e) => setNewMemberRole(e.target.value as any)}
-                  className="flex h-10 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="flex h-10 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none"
                 >
                   <option value="COLLABORATOR">Collaborator</option>
                   <option value="PROJECT_MANAGER">Project Manager</option>
                 </select>
-
                 <Button
                   onClick={() => {
                     if (selectedAutocompleteUser) {
@@ -1298,7 +1269,6 @@ export function Dashboard() {
                       </p>
                       <p className="text-xs text-muted-foreground truncate">{member.user?.email}</p>
                     </div>
-
                     <div className="flex items-center gap-2 shrink-0">
                       {isOwner ? (
                         <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
@@ -1323,13 +1293,9 @@ export function Dashboard() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
                             onClick={() => {
-                              if (
-                                window.confirm(
-                                  `Remove ${member.user?.name || member.user?.email} from project?`,
-                                )
-                              ) {
+                              if (window.confirm('Remove this member from project?')) {
                                 removeMemberMutation.mutate(member.userId);
                               }
                             }}
