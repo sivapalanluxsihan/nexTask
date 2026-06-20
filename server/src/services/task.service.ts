@@ -119,7 +119,7 @@ export const getAllTasks = async (
           assignedAt: a.assignedAt,
         })),
       };
-    })
+    }),
   );
 };
 // GET ONE

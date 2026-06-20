@@ -10,6 +10,7 @@ import {
 import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/apiError.util';
 import { hashPassword, verifyPassword } from '../utils/hash.util';
+import { MailService } from './mail.service';
 
 export type {
   AdminCreateUserRequest,
@@ -20,6 +21,8 @@ export type {
 };
 
 export class UserService {
+  private mailService = new MailService();
+
   /**
    * Returns the full profile of the authenticated user (password excluded).
    */
@@ -248,6 +251,13 @@ export class UserService {
         description: `Created user ${email} (${data.role})`,
       },
     });
+
+    // Trigger onboarding email notification
+    try {
+      await this.mailService.sendOnboardingEmail(email, newUser.name, tempPassword);
+    } catch (mailError) {
+      console.error(`[MAIL_ERROR] Failed to dispatch welcome email to ${email}:`, mailError);
+    }
 
     return {
       user: {
