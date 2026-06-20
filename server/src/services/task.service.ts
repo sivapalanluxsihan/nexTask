@@ -54,8 +54,8 @@ export const getAllTasks = async (
   status?: SharedTask['status'],
   priority?: SharedTask['priority'],
   tags?: string[],
-): Promise<Task[]> => {
-  return prisma.task.findMany({
+): Promise<SharedTask[]> => {
+  const tasks = await prisma.task.findMany({
     where: {
       projectId,
       status: status ?? undefined,
@@ -68,8 +68,59 @@ export const getAllTasks = async (
           ]
         : undefined,
     },
+    include: {
+      attachments: {
+        orderBy: { createdAt: 'desc' },
+      },
+      assignments: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { assignedAt: 'asc' },
+      },
+    },
     orderBy: { position: 'asc' },
   });
+
+  return Promise.all(
+    tasks.map(async (task) => {
+      const attachmentsWithUrls = await Promise.all(
+        task.attachments.map(async (att) => {
+          const presignedUrl = await generateDownloadUrl(att.fileKey);
+          return {
+            ...att,
+            presignedUrl: presignedUrl || undefined,
+          };
+        }),
+      );
+
+      return {
+        id: task.id,
+        title: task.title,
+        description: task.description ?? undefined,
+        dueDate: task.dueDate ?? undefined,
+        priority: task.priority as SharedTask['priority'],
+        status: task.status as SharedTask['status'],
+        tags: task.tags,
+        position: task.position,
+        projectId: task.projectId,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        attachments: attachmentsWithUrls,
+        assignees: task.assignments.map((a) => ({
+          userId: a.userId,
+          name: a.user.name,
+          email: a.user.email,
+          assignedAt: a.assignedAt,
+        })),
+      };
+    })
+  );
 };
 // GET ONE
 export const getTaskById = async (id: string): Promise<SharedTask | null> => {

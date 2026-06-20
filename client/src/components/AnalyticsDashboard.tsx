@@ -6,6 +6,11 @@ interface Task {
   title: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   status: 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
+  assignees?: {
+    userId: string;
+    name: string | null;
+    email: string;
+  }[];
 }
 
 interface AnalyticsDashboardProps {
@@ -31,6 +36,22 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ tasks })
     { name: 'Medium', count: tasks.filter(t => t.priority === 'MEDIUM').length },
     { name: 'High', count: tasks.filter(t => t.priority === 'HIGH').length },
   ];
+
+  // 4. Format data for Personal User Productivity Chart (Tasks Assigned per User)
+  const userTasksMap: Record<string, number> = {};
+  tasks.forEach((task) => {
+    if (task.assignees && task.assignees.length > 0) {
+      task.assignees.forEach((assignee) => {
+        const userName = assignee.name || assignee.email;
+        userTasksMap[userName] = (userTasksMap[userName] || 0) + 1;
+      });
+    }
+  });
+
+  const productivityData = Object.entries(userTasksMap).map(([name, count]) => ({
+    name,
+    count,
+  }));
 
   const COLORS = ['#f59e0b', '#3b82f6', '#10b981']; // Orange, Blue, Green colors for charts
 
@@ -89,6 +110,29 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ tasks })
             </ResponsiveContainer>
           </div>
         </div>
+      </div>
+
+      {/* Visual Team Member Allocation & Productivity Chart */}
+      <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+        <h4 className="text-base font-semibold mb-4 text-white">Team Member Allocation & Productivity</h4>
+        {productivityData.length === 0 ? (
+          <div className="h-64 flex items-center justify-center text-sm text-zinc-500 font-medium italic border border-dashed border-zinc-800 rounded-lg">
+            No team members have been assigned to any tasks yet.
+          </div>
+        ) : (
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={productivityData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                <XAxis type="number" allowDecimals={false} stroke="#a1a1aa" />
+                <YAxis type="category" dataKey="name" stroke="#a1a1aa" width={100} />
+                <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', color: '#fff' }} />
+                <Legend />
+                <Bar dataKey="count" fill="#10b981" name="Number of Tasks Assigned" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
     </div>
   );

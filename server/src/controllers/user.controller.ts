@@ -41,7 +41,7 @@ export class UserController extends Controller {
   @SuccessResponse('200', 'OK')
   @Get('search')
   @Middlewares(validateRequest(userAutocompleteQuerySchema))
-  @Security('jwt', ['project:member'])
+  @Security('jwt', ['project:manager'])
   public async getUserAutocomplete(
     @Query() projectId: string,
     @Query('q') q: string,

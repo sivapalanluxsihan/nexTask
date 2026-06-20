@@ -28,6 +28,7 @@ import {
   Search,
   Send,
   Sun,
+  BarChart2,
   Trash2,
   UserPlus,
   Users,
@@ -190,7 +191,7 @@ export function Dashboard() {
     description: '',
     priority: 'Medium',
   });
-  const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
+  const [viewMode, setViewMode] = useState<'board' | 'table' | 'analytics'>('board');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
@@ -630,6 +631,18 @@ export function Dashboard() {
             >
               <List className="h-4 w-4 mr-2" /> List
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('analytics')}
+              className={
+                viewMode === 'analytics'
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }
+            >
+              <BarChart2 className="h-4 w-4 mr-2" /> Analytics
+            </Button>
           </div>
           <Button
             variant="outline"
@@ -645,81 +658,80 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* RENDER DYNAMIC LIVE CHARTS HERE */}
-      <AnalyticsDashboard tasks={serverTasks || []} />
-
       {/* Unified Filters Bar */}
-      <div className="mb-6 flex flex-wrap items-center gap-3 bg-muted/20 p-3 rounded-xl border border-border">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search tasks..."
-            className="pl-9 bg-background border-border text-foreground"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {viewMode !== 'analytics' && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 bg-muted/20 p-3 rounded-xl border border-border">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search tasks..."
+              className="pl-9 bg-background border-border text-foreground"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Status Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-background border-border text-foreground hover:bg-muted"
+              >
+                <Filter className="mr-2 h-4 w-4 text-primary" />
+                <span>Status: {statusFilter || 'All'}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
+              <DropdownMenuItem onClick={() => setStatusFilter(null)}>All Statuses</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter('To Do')}>To Do</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter('In Progress')}>
+                In Progress
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setStatusFilter('Done')}>Done</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Priority Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-background border-border text-foreground hover:bg-muted"
+              >
+                <Filter className="mr-2 h-4 w-4 text-primary" />
+                <span>Priority: {priorityFilter || 'All'}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
+              <DropdownMenuItem onClick={() => setPriorityFilter(null)}>
+                All Priorities
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPriorityFilter('Low')}>Low</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPriorityFilter('Medium')}>Medium</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPriorityFilter('High')}>High</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Clear Filters */}
+          {(searchQuery || statusFilter || priorityFilter) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter(null);
+                setPriorityFilter(null);
+              }}
+              className="text-muted-foreground hover:text-foreground text-xs font-semibold"
+            >
+              Clear Filters
+            </Button>
+          )}
         </div>
-
-        {/* Status Filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-background border-border text-foreground hover:bg-muted"
-            >
-              <Filter className="mr-2 h-4 w-4 text-primary" />
-              <span>Status: {statusFilter || 'All'}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
-            <DropdownMenuItem onClick={() => setStatusFilter(null)}>All Statuses</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter('To Do')}>To Do</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter('In Progress')}>
-              In Progress
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setStatusFilter('Done')}>Done</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Priority Filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-background border-border text-foreground hover:bg-muted"
-            >
-              <Filter className="mr-2 h-4 w-4 text-primary" />
-              <span>Priority: {priorityFilter || 'All'}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
-            <DropdownMenuItem onClick={() => setPriorityFilter(null)}>
-              All Priorities
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setPriorityFilter('Low')}>Low</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setPriorityFilter('Medium')}>Medium</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setPriorityFilter('High')}>High</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Clear Filters */}
-        {(searchQuery || statusFilter || priorityFilter) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSearchQuery('');
-              setStatusFilter(null);
-              setPriorityFilter(null);
-            }}
-            className="text-muted-foreground hover:text-foreground text-xs font-semibold"
-          >
-            Clear Filters
-          </Button>
-        )}
-      </div>
+      )}
 
       {viewMode === 'board' ? (
         <DndContext
@@ -776,7 +788,7 @@ export function Dashboard() {
             ) : null}
           </DragOverlay>
         </DndContext>
-      ) : (
+      ) : viewMode === 'table' ? (
         <div className="border border-border rounded-xl overflow-hidden bg-card">
           <Table>
             <TableHeader className="bg-muted/50">
@@ -839,6 +851,8 @@ export function Dashboard() {
             </TableBody>
           </Table>
         </div>
+      ) : (
+        <AnalyticsDashboard tasks={serverTasks || []} />
       )}
 
       {/* ─── MODAL 1: VIEW TASK DETAILS ────────────────────────────────────────── */}
