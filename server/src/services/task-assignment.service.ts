@@ -6,6 +6,10 @@ import { ApiError } from '../utils/apiError.util';
 import { verifyProjectManagerAccess, verifyProjectMemberAccess } from './project-member.service';
 import { PushService } from './push.service';
 
+import { MailService } from './mail.service';
+
+const mailService = new MailService();
+
 /**
  * Assigns a user to a task.
  */
@@ -71,8 +75,9 @@ export async function assignUserToTask(
     },
   });
 
-  // Optional: Send push notification
+// Optional: Send push notification AND Email Alert
   if (userId !== requestorId) {
+    // 1. Send the push notification
     PushService.sendNotificationToUser(userId, {
       title: 'Task Assigned',
       body: `You have been assigned to task "${task.title}".`,
@@ -80,10 +85,17 @@ export async function assignUserToTask(
     }).catch((err) => {
       console.error('Failed to send push notification for task assignment:', err);
     });
-  }
 
-  return assignment;
-}
+    // 2. Send the email notification
+    mailService.sendTaskAssignmentEmail(
+      user.email,
+      user.name || 'Team Member',
+      task.title,
+      task.project.name
+    ).catch(err => console.error('❌ Failed to send assignment mail:', err));
+    }
+    return assignment;
+  }
 
 /**
  * Unassigns a user from a task.
@@ -220,14 +232,29 @@ export async function bulkAssignUsersToTask(
   });
 
   // Notify newly assigned users
+// Notify newly assigned users via Push and Email
   for (const uid of uniqueUserIds) {
     if (!oldUserIds.has(uid) && uid !== requestorId) {
+      // 1. Send push notification
       PushService.sendNotificationToUser(uid, {
         title: 'Task Assigned',
         body: `You have been assigned to task "${task.title}".`,
         data: { url: `/tasks/${taskId}` },
       }).catch((err) => {
         console.error('Failed to send push notification for task assignment:', err);
+      });
+
+      // 2. Fetch user data and send email
+      // (Using a standard then/catch block to avoid awaiting inside a non-critical loop)
+      prisma.user.findUnique({ where: { id: uid } }).then((notifiedUser) => {
+        if (notifiedUser) {
+          mailService.sendTaskAssignmentEmail(
+            notifiedUser.email,
+            notifiedUser.name || 'Team Member',
+            task.title,
+            task.project.name
+          ).catch(err => console.error('❌ Failed to send bulk assignment mail:', err));
+        }
       });
     }
   }
@@ -273,4 +300,4 @@ export async function getTaskAssignees(
     email: a.user.email,
     assignedAt: a.assignedAt,
   }));
-}
+} 

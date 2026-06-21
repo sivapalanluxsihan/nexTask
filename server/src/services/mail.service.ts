@@ -49,4 +49,33 @@ export class MailService {
       html: htmlContent,
     });
   }
+
+
+  public async sendTaskAssignmentEmail(
+    to: string,
+    name: string,
+    taskTitle: string,
+    projectName: string
+  ): Promise<void> {
+    if (!this.transporter) {
+      console.log(`[MAIL_WARN] SMTP not configured. Task Assignment email for ${to} printed below:`);
+      console.log(` -> Assigned to Task: ${taskTitle}`);
+      return;
+    }
+
+    // We will build a fancy HTML template for this in the next step!
+    const htmlContent = `
+      <h3>Hello ${name},</h3>
+      <p>You have been assigned to a new task: <strong>${taskTitle}</strong></p>
+      <p>Project: ${projectName}</p>
+      <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}">Log in to view your task</a>
+    `;
+
+    await this.transporter.sendMail({
+      from: process.env.MAIL_FROM || '"nexTask" <no-reply@nextask.com>',
+      to,
+      subject: `New Task Assigned: ${taskTitle}`,
+      html: htmlContent,
+    });
+  }
 }
