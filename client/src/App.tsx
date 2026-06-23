@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
+import { refreshSession } from './api/auth.api';
 import { Navbar } from './components/Navbar';
 import { PushNotificationPrompt } from './components/PushNotificationPrompt';
 import { Sidebar } from './components/Sidebar';
@@ -9,12 +10,14 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { RedirectIfAuthenticated, RequireAuth } from './components/auth/RouteGuard';
 import { ToastContainer } from './components/ui/Toast';
 import './index.css';
+import { Calendar } from './pages/Calendar';
 import { Dashboard } from './pages/Dashboard';
 import { Settings } from './pages/Settings';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import ForceResetPage from './pages/auth/ForceResetPage';
 import LoginPage from './pages/auth/LoginPage';
 import ProfilePage from './pages/profile/ProfilePage';
+import { useAuthStore } from './store/auth.store';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +63,7 @@ const DashboardLayout: React.FC = () => {
         <main className="flex-1 flex flex-col min-h-0 bg-background overflow-y-auto">
           <Routes>
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="calendar" element={<Calendar />} />
             <Route path="admin" element={<AdminDashboard />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<Settings />} />
@@ -72,11 +76,73 @@ const DashboardLayout: React.FC = () => {
   );
 };
 
+// Helper to decode JWT payload client-side without external dependencies
+function decodeJwt(token: string): { exp: number } | null {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window
+        .atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
+// Proactive background session refresher component
+const TokenRefresher: React.FC = () => {
+  const { token, setAuth, logout } = useAuthStore();
+
+  useEffect(() => {
+    if (!token) return;
+
+    const payload = decodeJwt(token);
+    if (!payload || !payload.exp) return;
+
+    const expirationTime = payload.exp * 1000;
+    const remainingTime = expirationTime - Date.now();
+
+    if (remainingTime <= 0) return;
+
+    // Refresh when there is 6 hours remaining, or after 10 seconds if already in buffer
+    const bufferTime = 6 * 60 * 60 * 1000; // 6 hours
+    const delay = remainingTime > bufferTime ? remainingTime - bufferTime : 10000;
+
+    console.log(
+      `[SESSION] Token expires in ${Math.round(remainingTime / 60000)} minutes. Scheduling background refresh in ${Math.round(delay / 60000)} minutes.`,
+    );
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        console.log('[SESSION] Triggering proactive background session refresh...');
+        const data = await refreshSession();
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser) {
+          setAuth(data.token, { ...currentUser, mustResetPassword: data.mustResetPassword });
+          console.log('[SESSION] Session refreshed successfully.');
+        }
+      } catch (err) {
+        console.error('[SESSION] Background session refresh failed:', err);
+      }
+    }, delay);
+
+    return () => clearTimeout(timeoutId);
+  }, [token, setAuth, logout]);
+
+  return null;
+};
+
 const App: React.FC = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+          <TokenRefresher />
           <Routes>
             {/* 1. Unauthenticated Routes */}
             <Route

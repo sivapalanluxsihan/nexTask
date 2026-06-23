@@ -3,6 +3,7 @@ import {
   AdminUpdateUserRequest,
   User,
   UserActivityResponse,
+  UserRole,
 } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -52,14 +53,12 @@ import { extractApiError } from '@/lib/apiError';
 import { useAuthStore } from '@/store/auth.store';
 import { useToastStore } from '@/store/toast.store';
 
-type UserRole = 'ADMIN' | 'PROJECT_MANAGER' | 'COLLABORATOR';
-
 interface UserActivity extends UserActivityResponse {
   user: {
     id: string;
     name: string | null;
     email: string;
-  };
+  } | null;
   task: {
     id: string;
     title: string;
@@ -538,7 +537,7 @@ export function AdminDashboard() {
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                         Actor:{' '}
                         <span className="font-semibold text-foreground">
-                          {act.user?.email || act.userId}
+                          {act.user?.email || 'Deleted User'}
                         </span>
                         {act.task && (
                           <>
