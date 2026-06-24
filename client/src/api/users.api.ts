@@ -93,3 +93,8 @@ export async function getUserActivity(id: string): Promise<UserActivityResponse[
   );
   return data.data ?? [];
 }
+
+// 9. POST /users/:id/reset-password (Request Password Reset)
+export async function resetUserPassword(id: string): Promise<void> {
+  await apiClient.post<ApiResponse<null>>(`/users/${id}/reset-password`);
+}

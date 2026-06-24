@@ -1,5 +1,7 @@
 import nodemailer from 'nodemailer';
 
+import { getAdminPasswordResetTemplate } from '../templates/admin-password-reset';
+import { getForgotPasswordTemplate } from '../templates/forgot-password';
 import { getProjectAddedTemplate } from '../templates/project-added';
 import { getProjectRemovedTemplate } from '../templates/project-removed';
 import { getProjectRoleUpdatedTemplate } from '../templates/project-role-updated';
@@ -50,6 +52,59 @@ export class MailService {
       from: process.env.MAIL_FROM || '"nexTask" <no-reply@nextask.com>',
       to,
       subject: 'Welcome to nexTask - Set Up Your Account',
+      html: htmlContent,
+    });
+  }
+
+  public async sendAdminPasswordResetEmail(to: string, name: string | null): Promise<void> {
+    const displayName = name || 'Team Member';
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+
+    if (!this.transporter) {
+      console.log(
+        `[MAIL_WARN] SMTP not configured. Password Reset request email for ${to} printed below:`,
+      );
+      console.log(` -> Action: Prompt user to log in and change password.`);
+      return;
+    }
+
+    const htmlContent = getAdminPasswordResetTemplate({
+      email: to,
+      name: displayName,
+      clientUrl,
+    });
+
+    await this.transporter.sendMail({
+      from: process.env.MAIL_FROM || '"nexTask" <no-reply@nextask.com>',
+      to,
+      subject: 'nexTask - Password Reset Required',
+      html: htmlContent,
+    });
+  }
+
+  public async sendForgotPasswordEmail(
+    to: string,
+    name: string | null,
+    resetLink: string,
+  ): Promise<void> {
+    const displayName = name || 'User';
+
+    if (!this.transporter) {
+      console.log(`[MAIL_WARN] SMTP not configured. Forgot Password link for ${to} printed below:`);
+      console.log(` -> Reset Link: ${resetLink}`);
+      return;
+    }
+
+    const htmlContent = getForgotPasswordTemplate({
+      email: to,
+      name: displayName,
+      resetLink,
+    });
+
+    await this.transporter.sendMail({
+      from: process.env.MAIL_FROM || '"nexTask" <no-reply@nextask.com>',
+      to,
+      subject: 'nexTask - Reset Your Password',
       html: htmlContent,
     });
   }

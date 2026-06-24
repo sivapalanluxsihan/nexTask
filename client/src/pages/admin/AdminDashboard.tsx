@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Edit,
   History,
+  Key,
   Loader2,
   Plus,
   Search,
@@ -27,6 +28,7 @@ import {
   deleteUser,
   getUserActivity,
   listUsers,
+  resetUserPassword,
   updateUser,
 } from '@/api/users.api';
 import { Badge } from '@/components/ui/badge';
@@ -85,6 +87,8 @@ export function AdminDashboard() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isResetOpen, setIsResetOpen] = useState(false);
+  const [resettingUser, setResettingUser] = useState<User | null>(null);
 
   // User Forms State
   const [formEmail, setFormEmail] = useState('');
@@ -175,6 +179,18 @@ export function AdminDashboard() {
     },
     onError: (err) => {
       showError(extractApiError(err, 'Failed to delete user.'));
+    },
+  });
+
+  const resetPasswordMutation = useMutation<void, unknown, string>({
+    mutationFn: resetUserPassword,
+    onSuccess: () => {
+      showSuccess(
+        'Password reset requested. The user will be prompted to change it on their next login.',
+      );
+    },
+    onError: (err) => {
+      showError(extractApiError(err, 'Failed to request password reset.'));
     },
   });
 
@@ -418,6 +434,19 @@ export function AdminDashboard() {
                                     <UserCheck className="h-4 w-4" />
                                   </Button>
                                 )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setResettingUser(u);
+                                    setIsResetOpen(true);
+                                  }}
+                                  disabled={isSelf}
+                                  title="Require Password Reset on Next Login"
+                                  className="h-8 w-8 hover:bg-violet-500/10 text-violet-500 disabled:opacity-30"
+                                >
+                                  <Key className="h-4 w-4" />
+                                </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -719,6 +748,67 @@ export function AdminDashboard() {
             >
               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Confirmation Dialog */}
+      <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
+        <DialogContent className="bg-background border-border text-foreground sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="text-violet-500 flex items-center gap-2 font-bold">
+              <Key className="h-5 w-5" /> Reset User Password?
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground mt-2">
+              Are you sure you want to require a password reset for{' '}
+              <strong className="text-foreground">{resettingUser?.email}</strong>?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-3 text-sm text-muted-foreground border-t border-b border-border/50 my-2">
+            <div className="flex items-start gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-violet-500 mt-1.5 shrink-0" />
+              <span>
+                Their current session will remain valid, but they must set a new password during
+                their next login attempt.
+              </span>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-violet-500 mt-1.5 shrink-0" />
+              <span>
+                An automated notification email will be sent immediately to let them know a reset
+                has been requested.
+              </span>
+            </div>
+          </div>
+
+          <DialogFooter className="mt-2 gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setIsResetOpen(false);
+                setResettingUser(null);
+              }}
+              className="hover:bg-muted text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-violet-600 hover:bg-violet-700 text-white"
+              onClick={() => {
+                if (resettingUser) {
+                  resetPasswordMutation.mutate(resettingUser.id);
+                }
+                setIsResetOpen(false);
+                setResettingUser(null);
+              }}
+              disabled={resetPasswordMutation.isPending}
+            >
+              {resetPasswordMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirm Reset
             </Button>
           </DialogFooter>
         </DialogContent>

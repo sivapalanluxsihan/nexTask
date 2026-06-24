@@ -15,7 +15,9 @@ import { Dashboard } from './pages/Dashboard';
 import { Settings } from './pages/Settings';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import ForceResetPage from './pages/auth/ForceResetPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import LoginPage from './pages/auth/LoginPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import { useAuthStore } from './store/auth.store';
 
@@ -150,6 +152,22 @@ const App: React.FC = () => {
               element={
                 <RedirectIfAuthenticated>
                   <LoginPage />
+                </RedirectIfAuthenticated>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <RedirectIfAuthenticated>
+                  <ForgotPasswordPage />
+                </RedirectIfAuthenticated>
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <RedirectIfAuthenticated>
+                  <ResetPasswordPage />
                 </RedirectIfAuthenticated>
               }
             />

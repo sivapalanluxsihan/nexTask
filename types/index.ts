@@ -74,6 +74,15 @@ export interface PasswordResetResponse {
   mustResetPassword: boolean;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResetRequest {
+  token: string;
+  newPassword: string;
+}
+
 // ─── Profile Payloads ─────────────────────────────────────────────────────────
 
 export interface ProfileUpdateRequest {

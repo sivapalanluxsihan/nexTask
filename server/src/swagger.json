@@ -1695,6 +1695,34 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ForgotPasswordRequest": {
+				"properties": {
+					"email": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ForgotPasswordResetRequest": {
+				"properties": {
+					"token": {
+						"type": "string"
+					},
+					"newPassword": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"token",
+					"newPassword"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"AttachmentListResponse": {
 				"properties": {
 					"success": {
@@ -2293,6 +2321,44 @@
 					}
 				},
 				"description": "Activate a user (Admin Only)",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"jwt": [
+							"global:admin"
+						]
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/users/{id}/reset-password": {
+			"post": {
+				"operationId": "RequestPasswordReset",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/VoidResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Triggers a mandatory password reset on next login (Admin Only)",
 				"tags": [
 					"Users"
 				],
@@ -3730,6 +3796,72 @@
 				"parameters": []
 			}
 		},
+		"/auth/forgot-password": {
+			"post": {
+				"operationId": "ForgotPassword",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/VoidResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Requests a password reset link to be sent via email.\r\nThis is a public endpoint and does not require authentication.",
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ForgotPasswordRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/auth/forgot-password/reset": {
+			"post": {
+				"operationId": "SelfResetPassword",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/VoidResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Resets a user's password using a valid, short-lived forgot-password token.\r\nThis is a public endpoint and does not require authentication.",
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ForgotPasswordResetRequest"
+							}
+						}
+					}
+				}
+			}
+		},
 		"/tasks/{taskId}/attachments": {
 			"get": {
 				"operationId": "GetAttachments",
@@ -3867,7 +3999,7 @@
 						}
 					}
 				},
-				"description": "Generates a cryptographically signed S3 PUT URL.\nRequires project membership validation and enforces a 25MB file size boundary.",
+				"description": "Generates a cryptographically signed S3 PUT URL.\r\nRequires project membership validation and enforces a 25MB file size boundary.",
 				"tags": [
 					"Attachments"
 				],

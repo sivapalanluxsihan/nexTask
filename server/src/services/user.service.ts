@@ -456,6 +456,47 @@ export class UserService {
   }
 
   /**
+   * Request password reset for a user (Admin Only)
+   */
+  public async adminResetPassword(id: string, actorId: string): Promise<void> {
+    if (id === actorId) {
+      throw new ApiError(
+        400,
+        'Administrators cannot request a password reset for their own account.',
+      );
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new ApiError(404, 'User not found.');
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: { mustResetPassword: true },
+    });
+
+    // Record audit activity
+    await prisma.taskActivity.create({
+      data: {
+        action: 'UPDATED',
+        userId: actorId,
+        description: `Triggered mandatory password reset for user ${user.email}`,
+      },
+    });
+
+    // Trigger password reset email notification
+    try {
+      await this.mailService.sendAdminPasswordResetEmail(user.email, user.name);
+    } catch (mailError) {
+      console.error(
+        `[MAIL_ERROR] Failed to dispatch password reset email to ${user.email}:`,
+        mailError,
+      );
+    }
+  }
+
+  /**
    * Get user activity audit logs
    */
   public async getUserActivity(userId: string) {

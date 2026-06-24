@@ -231,6 +231,20 @@ export class UserController extends Controller {
   }
 
   /**
+   * Triggers a mandatory password reset on next login (Admin Only)
+   */
+  @Post('{id}/reset-password')
+  @Security('jwt', ['global:admin'])
+  public async requestPasswordReset(
+    @Path() id: string,
+    @Request() request: ExRequest,
+  ): Promise<VoidResponse> {
+    const { userId: actorId } = (request as any).user;
+    await this.userService.adminResetPassword(id, actorId);
+    return successResponse('Password reset requested and notification emailed successfully.', null);
+  }
+
+  /**
    * View user action audit logs (Admin Only)
    */
   @Get('{id}/activity')
