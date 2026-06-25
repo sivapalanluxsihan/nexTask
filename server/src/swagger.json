@@ -1615,6 +1615,58 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"MessageAttachment": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"filename": {
+						"type": "string"
+					},
+					"fileKey": {
+						"type": "string"
+					},
+					"presignedUrl": {
+						"type": "string"
+					},
+					"mimeType": {
+						"type": "string"
+					},
+					"fileSize": {
+						"type": "number",
+						"format": "double"
+					},
+					"messageId": {
+						"type": "string"
+					},
+					"uploadedById": {
+						"type": "string"
+					},
+					"createdAt": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "string"
+							}
+						]
+					}
+				},
+				"required": [
+					"id",
+					"filename",
+					"fileKey",
+					"mimeType",
+					"fileSize",
+					"messageId",
+					"uploadedById",
+					"createdAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Message": {
 				"properties": {
 					"id": {
@@ -1642,6 +1694,12 @@
 								"type": "string"
 							}
 						]
+					},
+					"attachments": {
+						"items": {
+							"$ref": "#/components/schemas/MessageAttachment"
+						},
+						"type": "array"
 					}
 				},
 				"required": [

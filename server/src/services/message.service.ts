@@ -1,7 +1,8 @@
-import { Message } from '@nextask/types';
+import { CreateAttachmentRequest, Message } from '@nextask/types';
 
 import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/apiError.util';
+import { generateDownloadUrl } from './s3.service';
 
 export class MessageService {
   /**
@@ -26,22 +27,47 @@ export class MessageService {
             role: true,
           },
         },
+        attachments: {
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
-    return messages.map((m) => ({
-      id: m.id,
-      content: m.content,
-      projectId: m.projectId,
-      senderId: m.senderId,
-      sender: {
-        id: m.sender.id,
-        email: m.sender.email,
-        name: m.sender.name,
-        role: m.sender.role,
-      },
-      createdAt: m.createdAt,
-    }));
+    return Promise.all(
+      messages.map(async (m) => {
+        const mappedAttachments = await Promise.all(
+          m.attachments.map(async (att) => {
+            const url = await generateDownloadUrl(att.fileKey);
+            return {
+              id: att.id,
+              filename: att.filename,
+              fileKey: att.fileKey,
+              mimeType: att.mimeType,
+              fileSize: att.fileSize,
+              messageId: att.messageId,
+              uploadedById: att.uploadedById,
+              createdAt: att.createdAt,
+              presignedUrl: url || undefined,
+            };
+          }),
+        );
+
+        return {
+          id: m.id,
+          content: m.content,
+          projectId: m.projectId,
+          senderId: m.senderId,
+          sender: {
+            id: m.sender.id,
+            email: m.sender.email,
+            name: m.sender.name,
+            role: m.sender.role,
+          },
+          createdAt: m.createdAt,
+          attachments: mappedAttachments,
+        };
+      }),
+    );
   }
 
   /**
@@ -51,24 +77,67 @@ export class MessageService {
     projectId: string,
     senderId: string,
     content: string,
+    attachments?: CreateAttachmentRequest[],
   ): Promise<Message> {
-    const message = await prisma.message.create({
-      data: {
-        content,
-        projectId,
-        senderId,
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            role: true,
+    const message = await prisma.$transaction(async (tx) => {
+      const msg = await tx.message.create({
+        data: {
+          content,
+          projectId,
+          senderId,
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+            },
           },
         },
-      },
+      });
+
+      const createdAttachments: any[] = [];
+      if (attachments && attachments.length > 0) {
+        for (const att of attachments) {
+          const parsedSize = Math.floor(att.fileSize);
+          const created = await tx.messageAttachment.create({
+            data: {
+              filename: att.filename,
+              fileKey: att.fileKey,
+              mimeType: att.mimeType,
+              fileSize: isNaN(parsedSize) || parsedSize <= 0 ? 0 : parsedSize,
+              messageId: msg.id,
+              uploadedById: senderId,
+            },
+          });
+          createdAttachments.push(created);
+        }
+      }
+
+      return {
+        ...msg,
+        attachments: createdAttachments,
+      };
     });
+
+    const mappedAttachments = await Promise.all(
+      message.attachments.map(async (att) => {
+        const url = await generateDownloadUrl(att.fileKey);
+        return {
+          id: att.id,
+          filename: att.filename,
+          fileKey: att.fileKey,
+          mimeType: att.mimeType,
+          fileSize: att.fileSize,
+          messageId: att.messageId,
+          uploadedById: att.uploadedById,
+          createdAt: att.createdAt,
+          presignedUrl: url || undefined,
+        };
+      }),
+    );
 
     return {
       id: message.id,
@@ -82,6 +151,7 @@ export class MessageService {
         role: message.sender.role,
       },
       createdAt: message.createdAt,
+      attachments: mappedAttachments,
     };
   }
 }

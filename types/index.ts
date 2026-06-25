@@ -279,6 +279,18 @@ export interface GetPresignedUrlResponse {
 
 // ─── Project Chat Messages ───────────────────────────────────────────────────
 
+export interface MessageAttachment {
+  id: string;
+  filename: string;
+  fileKey: string;
+  presignedUrl?: string;
+  mimeType: string;
+  fileSize: number;
+  messageId: string;
+  uploadedById: string;
+  createdAt: Date | string;
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -286,10 +298,12 @@ export interface Message {
   senderId: string;
   sender?: CommentAuthor;
   createdAt: Date | string;
+  attachments?: MessageAttachment[];
 }
 
 export interface CreateMessageRequest {
   content: string;
+  attachments?: CreateAttachmentRequest[];
 }
 
 // ─── Admin Management Payloads ────────────────────────────────────────────────

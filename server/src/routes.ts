@@ -580,6 +580,22 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "MessageAttachment": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"string","required":true},
+            "filename": {"dataType":"string","required":true},
+            "fileKey": {"dataType":"string","required":true},
+            "presignedUrl": {"dataType":"string"},
+            "mimeType": {"dataType":"string","required":true},
+            "fileSize": {"dataType":"double","required":true},
+            "messageId": {"dataType":"string","required":true},
+            "uploadedById": {"dataType":"string","required":true},
+            "createdAt": {"dataType":"union","subSchemas":[{"dataType":"datetime"},{"dataType":"string"}],"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Message": {
         "dataType": "refObject",
         "properties": {
@@ -589,6 +605,7 @@ const models: TsoaRoute.Models = {
             "senderId": {"dataType":"string","required":true},
             "sender": {"ref":"CommentAuthor"},
             "createdAt": {"dataType":"union","subSchemas":[{"dataType":"datetime"},{"dataType":"string"}],"required":true},
+            "attachments": {"dataType":"array","array":{"dataType":"refObject","ref":"MessageAttachment"}},
         },
         "additionalProperties": false,
     },

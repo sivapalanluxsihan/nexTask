@@ -98,22 +98,26 @@ export const initSocket = (server: http.Server) => {
       socket.emit('left-project', { projectId });
     });
 
-    socket.on('send-message', async (data: { projectId: string; content: string }) => {
-      const currentUserId = socket.data.user?.userId;
-      if (!currentUserId) return;
+    socket.on(
+      'send-message',
+      async (data: { projectId: string; content: string; attachments?: any[] }) => {
+        const currentUserId = socket.data.user?.userId;
+        if (!currentUserId) return;
 
-      try {
-        const messageService = new MessageService();
-        const message = await messageService.createMessage(
-          data.projectId,
-          currentUserId,
-          data.content,
-        );
-        broadcastToProject(data.projectId, 'receive-message', message);
-      } catch (err) {
-        console.error('Failed to handle send-message socket event:', err);
-      }
-    });
+        try {
+          const messageService = new MessageService();
+          const message = await messageService.createMessage(
+            data.projectId,
+            currentUserId,
+            data.content,
+            data.attachments,
+          );
+          broadcastToProject(data.projectId, 'receive-message', message);
+        } catch (err) {
+          console.error('Failed to handle send-message socket event:', err);
+        }
+      },
+    );
 
     socket.on('disconnect', () => {
       console.log(`Socket disconnected: ${socket.id}`);

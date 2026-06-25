@@ -28,6 +28,7 @@ model User {
   attachments        Attachment[]
   taskActivities     TaskActivity[]
   messages           Message[]
+  messageAttachments MessageAttachment[]
 }
 
 model Project {
@@ -178,18 +179,37 @@ model TaskActivity {
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  content   String
-  createdAt DateTime @default(now())
+  id          String              @id @default(uuid())
+  content     String
+  createdAt   DateTime            @default(now())
+  attachments MessageAttachment[]
 
   // Relations
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   senderId  String
-  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  sender    User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@index([senderId])
+}
+
+model MessageAttachment {
+  id           String   @id @default(uuid())
+  filename     String
+  fileKey      String
+  mimeType     String
+  fileSize     Int
+  createdAt    DateTime @default(now())
+
+  // Relations
+  messageId    String
+  message      Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([uploadedById])
 }
 
 

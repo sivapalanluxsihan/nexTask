@@ -1,9 +1,10 @@
-import { Message } from '@nextask/types';
+import { CreateAttachmentRequest, Message } from '@nextask/types';
 import { useQuery } from '@tanstack/react-query';
-import { MessageSquare, Send } from 'lucide-react';
+import { MessageSquare, Paperclip, Send, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Socket, io } from 'socket.io-client';
 
+import { getPresignedUploadUrl, uploadFileToS3 } from '../api/attachments.api';
 import { fetchProjectMessages } from '../api/messages.api';
 import { fetchUserProjects } from '../api/profile.api';
 import { Button } from '../components/ui/button';
@@ -11,6 +12,7 @@ import { Input } from '../components/ui/input';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { useAuthStore } from '../store/auth.store';
 import { useProjectStore } from '../store/project.store';
+import { useToastStore } from '../store/toast.store';
 
 export default function MessagesPage() {
   const user = useAuthStore((s) => s.user);
@@ -19,6 +21,8 @@ export default function MessagesPage() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -95,15 +99,55 @@ export default function MessagesPage() {
     };
   }, [activeProjectIdResolved, token]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !activeProjectIdResolved || !socketRef.current) return;
+    if (
+      (!newMessage.trim() && stagedFiles.length === 0) ||
+      !activeProjectIdResolved ||
+      !socketRef.current ||
+      isUploading
+    ) {
+      return;
+    }
+
+    let uploadedAttachments: CreateAttachmentRequest[] = [];
+    if (stagedFiles.length > 0) {
+      setIsUploading(true);
+      try {
+        uploadedAttachments = await Promise.all(
+          stagedFiles.map(async (file) => {
+            const presigned = await getPresignedUploadUrl({
+              filename: file.name,
+              mimeType: file.type || 'application/octet-stream',
+              fileSize: file.size,
+              projectId: activeProjectIdResolved,
+            });
+            await uploadFileToS3(presigned.uploadUrl, file);
+            return {
+              filename: file.name,
+              fileKey: presigned.fileKey,
+              mimeType: file.type || 'application/octet-stream',
+              fileSize: file.size,
+            };
+          }),
+        );
+      } catch (err) {
+        console.error('[Chat Upload] Failed to upload files:', err);
+        useToastStore.getState().showError('Failed to upload chat attachments.');
+        setIsUploading(false);
+        return;
+      }
+    }
 
     socketRef.current.emit('send-message', {
       projectId: activeProjectIdResolved,
       content: newMessage.trim(),
+      attachments: uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
     });
+
     setNewMessage('');
+    setStagedFiles([]);
+    setIsUploading(false);
   };
 
   return (
@@ -224,7 +268,70 @@ export default function MessagesPage() {
                                 : 'bg-card border-border text-foreground rounded-tl-sm'
                             }`}
                           >
-                            <p className="whitespace-pre-wrap wrap-break-word">{msg.content}</p>
+                            {msg.content && (
+                              <p className="whitespace-pre-wrap wrap-break-word">{msg.content}</p>
+                            )}
+
+                            {msg.attachments && msg.attachments.length > 0 && (
+                              <div
+                                className={`mt-2 flex flex-col gap-2 max-w-full ${msg.content ? 'pt-2 border-t border-dashed ' + (isMine ? 'border-primary-foreground/20' : 'border-border') : ''}`}
+                              >
+                                {msg.attachments.map((att) => {
+                                  const isImage = att.mimeType.startsWith('image/');
+                                  return (
+                                    <div
+                                      key={att.id}
+                                      className={`flex items-center gap-2.5 p-2 rounded-xl border max-w-[280px] sm:max-w-xs ${
+                                        isMine
+                                          ? 'bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground'
+                                          : 'bg-muted/50 border-border/80 text-foreground'
+                                      }`}
+                                    >
+                                      {isImage && att.presignedUrl ? (
+                                        <div className="relative group shrink-0">
+                                          <img
+                                            src={att.presignedUrl}
+                                            alt={att.filename}
+                                            className="w-11 h-11 rounded-lg object-cover bg-background border border-border/30 cursor-zoom-in"
+                                            onClick={() => window.open(att.presignedUrl, '_blank')}
+                                          />
+                                        </div>
+                                      ) : (
+                                        <div
+                                          className={`w-11 h-11 rounded-lg flex items-center justify-center border shrink-0 ${
+                                            isMine
+                                              ? 'bg-primary-foreground/20 border-primary-foreground/30'
+                                              : 'bg-background border-border'
+                                          }`}
+                                        >
+                                          <Paperclip className="h-4 w-4 opacity-80" />
+                                        </div>
+                                      )}
+                                      <div className="flex-1 min-w-0 text-left text-[11px]">
+                                        <p className="font-bold truncate pr-4 leading-tight">
+                                          {att.filename}
+                                        </p>
+                                        <p className="text-[9px] opacity-70 mt-0.5">
+                                          {(att.fileSize / 1024).toFixed(0)} KB
+                                        </p>
+                                        {att.presignedUrl && (
+                                          <a
+                                            href={att.presignedUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`text-[9px] font-extrabold hover:underline mt-1 inline-block ${
+                                              isMine ? 'text-primary-foreground/90' : 'text-primary'
+                                            }`}
+                                          >
+                                            Download
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                           <span className="text-[9px] text-muted-foreground mt-1 select-none">
                             {new Date(msg.createdAt).toLocaleTimeString([], {
@@ -243,23 +350,77 @@ export default function MessagesPage() {
 
             {/* Chat Input */}
             <div className="p-4 bg-card border-t border-border shrink-0">
-              <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto flex gap-2">
-                <Input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type a message to broadcast to project team..."
-                  className="flex-1 bg-background border-border text-foreground focus-visible:ring-primary h-11 px-4 rounded-xl text-sm outline-none"
-                  autoComplete="off"
-                />
-                <Button
-                  type="submit"
-                  disabled={!newMessage.trim()}
-                  className="h-11 px-5 rounded-xl font-bold text-sm shrink-0 flex items-center gap-2"
-                >
-                  <span>Send</span>
-                  <Send className="w-4 h-4" />
-                </Button>
+              <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto flex flex-col gap-2">
+                {/* Staged Files Preview List */}
+                {stagedFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2 bg-muted/30 p-2 rounded-xl border border-border/60">
+                    {stagedFiles.map((file, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 bg-background border border-border px-2.5 py-1.5 rounded-lg text-xs text-foreground max-w-[220px]"
+                      >
+                        <Paperclip className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="truncate font-semibold max-w-[100px]">{file.name}</span>
+                        <span className="text-[10px] text-muted-foreground shrink-0">
+                          ({(file.size / 1024).toFixed(0)} KB)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setStagedFiles((prev) => prev.filter((_, i) => i !== idx))}
+                          className="text-muted-foreground hover:text-destructive shrink-0 transition-colors ml-1"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    id="chat-file-upload"
+                    className="hidden"
+                    multiple
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        setStagedFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => document.getElementById('chat-file-upload')?.click()}
+                    disabled={isUploading}
+                    className="h-11 w-11 rounded-xl bg-background border border-border text-muted-foreground hover:text-foreground shrink-0"
+                    title="Attach Files"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </Button>
+                  <Input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder={
+                      isUploading
+                        ? 'Uploading attachments...'
+                        : 'Type a message to broadcast to project team...'
+                    }
+                    className="flex-1 bg-background border-border text-foreground focus-visible:ring-primary h-11 px-4 rounded-xl text-sm outline-none"
+                    autoComplete="off"
+                    disabled={isUploading}
+                  />
+                  <Button
+                    type="submit"
+                    disabled={isUploading || (!newMessage.trim() && stagedFiles.length === 0)}
+                    className="h-11 px-5 rounded-xl font-bold text-sm shrink-0 flex items-center gap-2"
+                  >
+                    <span>{isUploading ? 'Uploading...' : 'Send'}</span>
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
               </form>
             </div>
           </>
