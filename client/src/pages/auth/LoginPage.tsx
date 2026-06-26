@@ -57,7 +57,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 w-full">
+    <div className="min-h-screen bg-transparent flex items-center justify-center p-6 w-full">
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="flex items-center gap-2.5 mb-8">

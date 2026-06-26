@@ -106,7 +106,7 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
     <aside className="w-full border-r border-border h-full py-6 bg-background flex flex-col justify-between transition-all duration-300">
       <div className="flex flex-col gap-6">
         <div
-          className={`font-extrabold tracking-tight text-foreground transition-all duration-300 ${isOpen ? 'text-2xl px-6' : 'text-xl text-center'}`}
+          className={`font-extrabold tracking-tight bg-gradient-to-r from-primary to-indigo-400 bg-clip-text text-transparent transition-all duration-300 ${isOpen ? 'text-2xl px-6' : 'text-xl text-center'}`}
         >
           {isOpen ? 'nexTask' : 'T'}
         </div>
@@ -117,15 +117,15 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className={`w-full flex items-center gap-2 border-border bg-background hover:bg-muted text-foreground text-sm font-semibold h-10 ${
+                className={`w-full flex items-center gap-2 border-border/60 bg-muted/20 hover:bg-muted text-foreground text-sm font-semibold h-10 transition-all group ${
                   isOpen ? 'px-3 justify-between' : 'p-0 justify-center'
                 }`}
               >
                 <div className="flex items-center gap-2 truncate">
-                  <Folder className="h-4 w-4 shrink-0 text-primary" />
+                  <Folder className="h-4 w-4 shrink-0 text-primary group-hover:text-primary transition-colors duration-200" />
                   {isOpen && <span className="truncate">{activeProjectName}</span>}
                 </div>
-                {isOpen && <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />}
+                {isOpen && <ChevronDown className="h-4 w-4 shrink-0 opacity-50 group-hover:translate-y-0.5 transition-transform duration-200" />}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-popover border-border text-popover-foreground w-56">
@@ -162,35 +162,35 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
         <div className="flex flex-col gap-6 px-3">
           <div className="flex flex-col gap-1.5">
             {isOpen && (
-              <div className="text-muted-foreground font-bold text-[10px] tracking-widest uppercase mb-1.5 px-3">
+              <div className="text-muted-foreground/50 font-bold text-[10px] tracking-widest uppercase mb-1.5 px-3">
                 Main Menu
               </div>
             )}
             <Link
               to="/dashboard"
               title="Dashboard"
-              className={`flex items-center gap-3 ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} ${
+              className={`flex items-center gap-3 relative group ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} ${
                 isActive('/dashboard')
-                  ? 'bg-primary/10 text-primary font-bold shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'bg-gradient-to-r from-primary/15 to-primary/5 text-primary font-bold shadow-sm shadow-primary/5 border-l-2 border-primary rounded-r-lg rounded-l-none'
+                  : 'text-muted-foreground hover:bg-accent/40 hover:text-accent-foreground'
               } rounded-lg text-sm transition-all duration-200`}
             >
               <LayoutDashboard
-                className={`w-5 h-5 shrink-0 ${isActive('/dashboard') ? 'text-primary' : 'text-muted-foreground'}`}
+                className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:scale-105 ${isActive('/dashboard') ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}
               />
               {isOpen && <span>Dashboard</span>}
             </Link>
             <Link
               to="/calendar"
               title="Schedule Visualizer"
-              className={`flex items-center gap-3 ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} ${
+              className={`flex items-center gap-3 relative group ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} ${
                 isActive('/calendar')
-                  ? 'bg-primary/10 text-primary font-bold shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'bg-gradient-to-r from-primary/15 to-primary/5 text-primary font-bold shadow-sm shadow-primary/5 border-l-2 border-primary rounded-r-lg rounded-l-none'
+                  : 'text-muted-foreground hover:bg-accent/40 hover:text-accent-foreground'
               } rounded-lg text-sm transition-all duration-200`}
             >
               <Calendar
-                className={`w-5 h-5 shrink-0 ${isActive('/calendar') ? 'text-primary' : 'text-muted-foreground'}`}
+                className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:scale-105 ${isActive('/calendar') ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}
               />
               {isOpen && <span>Calendar</span>}
             </Link>
@@ -213,22 +213,23 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
           {/* Admin Portal (Admin Only) */}
           {user?.role === 'ADMIN' && (
             <div className="flex flex-col gap-1.5">
+              <div className="h-px bg-border/40 my-1 mx-2" />
               {isOpen && (
-                <div className="text-muted-foreground font-bold text-[10px] tracking-widest uppercase mb-1.5 px-3">
+                <div className="text-muted-foreground/50 font-bold text-[10px] tracking-widest uppercase mb-1.5 px-3">
                   Admin
                 </div>
               )}
               <Link
                 to="/admin"
                 title="Admin Portal"
-                className={`flex items-center gap-3 ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} ${
+                className={`flex items-center gap-3 relative group ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} ${
                   isActive('/admin')
-                    ? 'bg-primary/10 text-primary font-bold shadow-sm'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    ? 'bg-gradient-to-r from-primary/15 to-primary/5 text-primary font-bold shadow-sm shadow-primary/5 border-l-2 border-primary rounded-r-lg rounded-l-none'
+                    : 'text-muted-foreground hover:bg-accent/40 hover:text-accent-foreground'
                 } rounded-lg text-sm transition-all duration-200`}
               >
                 <Shield
-                  className={`w-5 h-5 shrink-0 ${isActive('/admin') ? 'text-primary' : 'text-muted-foreground'}`}
+                  className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:scale-105 ${isActive('/admin') ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}
                 />
                 {isOpen && <span>Admin Portal</span>}
               </Link>
@@ -236,22 +237,23 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
           )}
 
           <div className="flex flex-col gap-1.5">
+            <div className="h-px bg-border/40 my-1 mx-2" />
             {isOpen && (
-              <div className="text-muted-foreground font-bold text-[10px] tracking-widest uppercase mb-1.5 px-3">
+              <div className="text-muted-foreground/50 font-bold text-[10px] tracking-widest uppercase mb-1.5 px-3">
                 General
               </div>
             )}
             <Link
               to="/settings"
               title="Settings"
-              className={`flex items-center gap-3 ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} ${
+              className={`flex items-center gap-3 relative group ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} ${
                 isActive('/settings')
-                  ? 'bg-primary/10 text-primary font-bold shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'bg-gradient-to-r from-primary/15 to-primary/5 text-primary font-bold shadow-sm shadow-primary/5 border-l-2 border-primary rounded-r-lg rounded-l-none'
+                  : 'text-muted-foreground hover:bg-accent/40 hover:text-accent-foreground'
               } rounded-lg text-sm transition-all duration-200`}
             >
               <Settings
-                className={`w-5 h-5 shrink-0 ${isActive('/settings') ? 'text-primary' : 'text-muted-foreground'}`}
+                className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:scale-105 ${isActive('/settings') ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}
               />
               {isOpen && <span>Settings</span>}
             </Link>
@@ -259,13 +261,13 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
         </div>
       </div>
 
-      <div className="px-3">
+      <div className="px-3 pt-4 border-t border-border/40">
         <button
           onClick={handleLogout}
           title="Log Out"
-          className={`group flex items-center gap-3 w-full ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg font-bold text-sm transition-all duration-200`}
+          className={`group flex items-center gap-3 w-full ${isOpen ? 'px-4 py-2.5 justify-start' : 'h-10 w-10 justify-center mx-auto'} text-muted-foreground hover:bg-red-500/10 hover:text-red-400 rounded-lg font-bold text-sm transition-all duration-200`}
         >
-          <LogOut className="w-5 h-5 shrink-0 text-muted-foreground group-hover:text-destructive" />
+          <LogOut className="w-5 h-5 shrink-0 text-muted-foreground group-hover:text-red-400 group-hover:-translate-x-1 transition-transform duration-200" />
           {isOpen && <span>Log Out</span>}
         </button>
       </div>

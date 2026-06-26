@@ -30,35 +30,35 @@
     color-scheme: dark;
 
     /* BACKGROUNDS: Deep Midnight/Slate (Slight blue/purple undertone) */
-    --background: 224 71% 4%;
+    --background: 240 10% 4%;
     --foreground: 210 20% 98%;
 
     /* CARDS: Slightly elevated to pop off the background */
-    --card: 222 47% 8%;
+    --card: 240 10% 8%;
     --card-foreground: 210 20% 98%;
 
     /* MENUS & POPOVERS */
-    --popover: 222 47% 8%;
+    --popover: 240 10% 8%;
     --popover-foreground: 210 20% 98%;
 
     /* PRIMARY ACCENT: A modern soft violet/indigo (Very trendy) */
-    --primary: 262 83% 65%;
+    --primary: 250 85% 66%;
     --primary-foreground: 0 0% 100%;
 
     /* SECONDARY & MUTED: For columns, borders, and subtle text */
-    --secondary: 217 32% 17%;
+    --secondary: 240 6% 15%;
     --secondary-foreground: 210 20% 98%;
-    --muted: 217 32% 15%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 6% 12%;
+    --muted-foreground: 240 5% 65%;
 
     /* DESTRUCTIVE: A softer, more modern red */
     --destructive: 0 62% 45%;
     --destructive-foreground: 210 20% 98%;
 
     /* BORDERS & INPUTS: Crisp, clean separation lines */
-    --border: 217 32% 17%;
-    --input: 217 32% 17%;
-    --ring: 262 83% 65%;
+    --border: 240 6% 15%;
+    --input: 240 6% 15%;
+    --ring: 250 85% 66%;
   }
 }
 
@@ -66,7 +66,7 @@
   /* 1. Force the absolute root of the app to be the theme background */
   html,
   body {
-    @apply bg-background text-foreground;
+    @apply bg-slate-950 text-foreground bg-dot-grid;
   }
 
   * {
@@ -92,4 +92,9 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/50;
   }
+}
+
+@utility bg-dot-grid {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.07) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
 }

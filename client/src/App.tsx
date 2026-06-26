@@ -36,7 +36,7 @@ const DashboardLayout: React.FC = () => {
 
   return (
     // Changed bg-slate-50 to bg-background and added text-foreground
-    <div className="flex h-screen bg-background text-foreground overflow-hidden relative transition-colors duration-300">
+    <div className="flex h-screen bg-transparent text-foreground overflow-hidden relative transition-colors duration-300">
       {isSidebarOpen && (
         <button
           type="button"
@@ -60,10 +60,10 @@ const DashboardLayout: React.FC = () => {
       </div>
 
       {/* Changed bg-white and border-slate-200 to theme variables */}
-      <div className="flex-1 flex flex-col bg-background border-l border-border min-w-0 transition-all duration-300 h-screen">
+      <div className="flex-1 flex flex-col bg-transparent border-l border-border min-w-0 transition-all duration-300 h-screen">
         <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
         {/* Changed bg-zinc-950 to bg-background */}
-        <main className="flex-1 flex flex-col min-h-0 bg-background overflow-y-auto">
+        <main className="flex-1 flex flex-col min-h-0 bg-transparent overflow-y-auto">
           <Routes>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="calendar" element={<Calendar />} />
