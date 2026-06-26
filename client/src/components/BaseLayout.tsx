@@ -11,6 +11,7 @@ import { useWebPush } from '@/hooks/useWebPush';
 import { useAuthStore } from '@/store/auth.store';
 import { useQuery } from '@tanstack/react-query';
 import { fetchNotifications } from '@/api/notifications.api';
+import { PushNotificationPrompt } from '@/components/PushNotificationPrompt';
 
 export interface BaseLayoutNavItem {
   label: string;
@@ -205,6 +206,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
           {children}
         </div>
       </div>
+      <PushNotificationPrompt />
     </div>
   );
 };

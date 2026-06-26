@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   User,
   FileText,
+  MessageSquare,
 } from 'lucide-react';
 import React from 'react';
 import { Outlet } from 'react-router-dom';
@@ -25,6 +26,7 @@ export const PmLayout: React.FC<PmLayoutProps> = ({
     { label: 'Dashboard', path: '/pm/dashboard', icon: LayoutDashboard },
     { label: 'Projects', path: '/pm/projects', icon: Folder },
     { label: 'Kanban Board', path: '/pm/tasks', icon: FileText },
+    { label: 'Chat', path: '/pm/messages', icon: MessageSquare },
     { label: 'Reports', path: '/pm/reports', icon: BarChart2 },
     { label: 'Notifications', path: '/pm/notifications', icon: Bell },
     { label: 'Profile', path: '/pm/profile', icon: User },

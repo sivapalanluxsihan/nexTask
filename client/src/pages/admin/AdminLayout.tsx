@@ -6,6 +6,7 @@ import {
   Settings,
   User,
   Users,
+  MessageSquare,
 } from 'lucide-react';
 import React from 'react';
 import { Outlet } from 'react-router-dom';
@@ -26,6 +27,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Users', path: '/admin/users', icon: Users },
     { label: 'Projects', path: '/admin/projects', icon: Folder },
+    { label: 'Chat', path: '/admin/messages', icon: MessageSquare },
     { label: 'Reports', path: '/admin/reports', icon: BarChart2 },
     { label: 'Notifications', path: '/admin/notifications', icon: Bell },
     { label: 'Settings', path: '/admin/settings', icon: Settings },

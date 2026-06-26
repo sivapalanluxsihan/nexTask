@@ -414,7 +414,7 @@ export const CollaboratorTasksView: React.FC = () => {
                     >
                       <option value="TODO">To Do</option>
                       <option value="IN_PROGRESS">In Progress</option>
-                      <option value="COMPLETED">Completed</option>
+                      <option value="DONE">Completed</option>
                     </select>
                   )}
                 </div>

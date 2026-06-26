@@ -958,7 +958,7 @@ export function RegisterRoutes(app: Router) {
                 search: {"in":"query","name":"search","dataType":"string"},
         };
         app.get('/users',
-            authenticateMiddleware([{"jwt":["global:admin"]}]),
+            authenticateMiddleware([{"jwt":["global:pm"]}]),
             ...(fetchMiddlewares<RequestHandler>(UserController)),
             ...(fetchMiddlewares<RequestHandler>(UserController.prototype.listUsers)),
 

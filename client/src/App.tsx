@@ -33,6 +33,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import LoginPage from './pages/auth/LoginPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import { useAuthStore } from './store/auth.store';
+import MessagesPage from './pages/MessagesPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +68,7 @@ const DashboardLayout: React.FC = () => {
           <Route path="admin/projects" element={<AdminProjectsView />} />
           <Route path="admin/reports" element={<AdminReportsView />} />
           <Route path="admin/notifications" element={<AdminNotificationsView />} />
+          <Route path="admin/messages" element={<MessagesPage />} />
           <Route path="admin/settings" element={<AdminSettingsView />} />
           <Route path="admin/profile" element={<AdminProfileView />} />
           <Route path="*" element={<Navigate to="admin/dashboard" replace />} />
@@ -90,6 +92,7 @@ const DashboardLayout: React.FC = () => {
           <Route path="pm/projects" element={<PmProjectsView />} />
           <Route path="pm/tasks" element={<PmTasksView />} />
           <Route path="pm/reports" element={<PmReportsView />} />
+          <Route path="pm/messages" element={<MessagesPage />} />
           <Route path="pm/notifications" element={<PmNotificationsView />} />
           <Route path="pm/profile" element={<PmProfileView />} />
           <Route path="*" element={<Navigate to="pm/dashboard" replace />} />
@@ -112,6 +115,7 @@ const DashboardLayout: React.FC = () => {
           <Route path="collaborator/dashboard" element={<CollaboratorDashboardView />} />
           <Route path="collaborator/tasks" element={<CollaboratorTasksView />} />
           <Route path="collaborator/projects" element={<CollaboratorProjectsView />} />
+          <Route path="collaborator/messages" element={<MessagesPage />} />
           <Route path="collaborator/notifications" element={<CollaboratorNotificationsView />} />
           <Route path="collaborator/profile" element={<CollaboratorProfileView />} />
           <Route path="*" element={<Navigate to="collaborator/dashboard" replace />} />

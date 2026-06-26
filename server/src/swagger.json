@@ -2354,7 +2354,7 @@
 				"security": [
 					{
 						"jwt": [
-							"global:admin"
+							"global:pm"
 						]
 					}
 				],
@@ -4544,7 +4544,7 @@
 						}
 					}
 				},
-				"description": "Retrieves system summary analytics for the administrator dashboard.\nDerived purely on the backend.",
+				"description": "Retrieves system summary analytics for the administrator dashboard.\r\nDerived purely on the backend.",
 				"tags": [
 					"Admin"
 				],

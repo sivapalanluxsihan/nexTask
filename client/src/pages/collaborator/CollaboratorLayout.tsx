@@ -6,6 +6,7 @@ import {
   Folder,
   Bell,
   User,
+  MessageSquare,
 } from 'lucide-react';
 import { BaseLayout } from '@/components/BaseLayout';
 
@@ -24,6 +25,7 @@ export const CollaboratorLayout: React.FC<CollaboratorLayoutProps> = ({
     { label: 'Dashboard', path: '/collaborator/dashboard', icon: LayoutDashboard },
     { label: 'My Tasks', path: '/collaborator/tasks', icon: FileText },
     { label: 'My Projects', path: '/collaborator/projects', icon: Folder },
+    { label: 'Chat', path: '/collaborator/messages', icon: MessageSquare },
     { label: 'Notifications', path: '/collaborator/notifications', icon: Bell },
     { label: 'Profile', path: '/collaborator/profile', icon: User },
   ];
