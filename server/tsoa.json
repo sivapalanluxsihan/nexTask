@@ -5,6 +5,13 @@
   "spec": {
     "outputDirectory": "src",
     "specVersion": 3,
+    "name": "nexTask API Portal",
+    "version": "1.0.0",
+    "description": "Interactive developer reference for nexTask",
+    "contact": {
+      "name": "nexTask Development Team",
+      "url": "https://nextask.sasivarnasarma.me"
+    },
     "securityDefinitions": {
       "jwt": {
         "type": "apiKey",

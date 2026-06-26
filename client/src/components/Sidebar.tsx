@@ -13,12 +13,10 @@ export function Sidebar() {
 
   const isActive = (path: string) => location.pathname.includes(path);
 
-  const handleLogout = async () => {
-    try {
-      await unsubscribe();
-    } catch (e) {
+  const handleLogout = () => {
+    unsubscribe().catch((e) => {
       console.error('Failed to unsubscribe push notifications on logout:', e);
-    }
+    });
     logout();
     navigate('/login');
   };

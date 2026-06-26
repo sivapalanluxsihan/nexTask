@@ -59,12 +59,10 @@ export default function ForceResetPage() {
     }
   }
 
-  async function handleLogout() {
-    try {
-      await unsubscribe();
-    } catch (e) {
+  function handleLogout() {
+    unsubscribe().catch((e) => {
       console.error('Failed to unsubscribe push notifications on logout:', e);
-    }
+    });
     logout();
     navigate('/login', { replace: true });
   }

@@ -2155,9 +2155,13 @@
 		}
 	},
 	"info": {
-		"title": "@nextask/server",
+		"title": "nexTask API Portal",
 		"version": "1.0.0",
-		"contact": {}
+		"description": "Interactive developer reference for nexTask",
+		"contact": {
+			"name": "nexTask Development Team",
+			"url": "https://nextask.sasivarnasarma.me"
+		}
 	},
 	"paths": {
 		"/users/search": {

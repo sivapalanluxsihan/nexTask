@@ -527,28 +527,34 @@ pnpm prod
 
 ## 🐳 Docker Orchestration
 
-To run the entire stack (PostgreSQL, Express API, and Nginx hosting the React bundle) in containerized environments:
+The project uses a unified reverse-proxy Docker architecture. An outer Nginx container acts as the single public gateway on port `80`, routing traffic internally to the isolated React frontend and Express API containers on a private bridge network.
 
 ```bash
-# Build and launch containers
+# Build and launch the container stack locally
 docker-compose up --build
 ```
 
-### Container Services Mapping
+### Container Services Configuration
 
-| Container / Service           | Container Port | Exposed Host Port  |
-| :---------------------------- | :------------- | :----------------- |
-| **`postgres-db`**             | `5432`         | `5432`             |
-| **`backend-api`**             | `3000`         | `3000`             |
-| **`frontend-client` (Nginx)** | `80`           | `8888` (or `8080`) |
+| Container            | Service Name | Image Source (Production) / Context (Dev)      | Exposed Port (Host) | Internal Port (Bridge) | Purpose                                                     |
+| :------------------- | :----------- | :--------------------------------------------- | :------------------ | :--------------------- | :---------------------------------------------------------- |
+| **`nextask_nginx`**  | `nginx`      | `nginx:alpine` (local config)                  | `80:80`             | `80`                   | Reverse proxy gateway, SSL/HTTP router, and path dispatcher |
+| **`nextask_client`** | `client`     | `ghcr.io/sasivarnasarma/nextask-client:latest` | _None_              | `80`                   | Serves compiled React frontend static files via Nginx       |
+| **`nextask_server`** | `server`     | `ghcr.io/sasivarnasarma/nextask-server:latest` | _None_              | `3000`                 | Exposes Express REST API and Socket.IO server               |
+
+### Ingress Routing Schema (Port 80 Gateway)
+
+- **Frontend SPA**: Routes `/` to the `client` container on port `80`.
+- **REST API**: Routes `/api/` to the `server` container on port `3000`.
+- **WebSockets**: Routes `/socket.io/` to the `server` container on port `3000`, handling connection upgrades.
 
 ### Teardown Commands
 
 ```bash
-# Stop containers
+# Stop all containers
 docker-compose down
 
-# Stop and wipe databases (cleans volumes)
+# Stop and wipe PostgreSQL volumes
 docker-compose down -v
 ```
 
@@ -678,18 +684,34 @@ The testing suite contains:
 
 ## 🚀 CI/CD Pipeline
 
-The project uses **GitHub Actions** for continuous integration, executing the following steps on every PR or push to `main`:
+Continuous Integration and Continuous Deployment (CI/CD) are fully automated using **GitHub Actions**, dividing deployment into two consecutive workflows:
 
-```yaml
-Pipeline Steps: 1. Set up Node.js environment
-  2. Install dependencies (pnpm install)
-  3. Validate Prisma database schema syntax
-  4. Build types and compile shared workspaces
-  5. Run TypeScript compiler type checking (pnpm typecheck)
-  6. Run linter checks (pnpm lint)
-  7. Verify production build compilation (Vite & Express compilation)
-  8. Verify Docker image build capability
-```
+### 1. Build & Publish Images (`docker.yml`)
+
+Triggered automatically on a `push` to the `main` branch or manually via the GitHub Actions dashboard.
+
+- **Parallel Builds**: Builds `client` and `server` Docker containers concurrently using a matrix build strategy.
+- **Container Registry**: Publishes production-ready containers to **GitHub Container Registry** (`ghcr.io`).
+- **Image Tagging**: Applies `latest` and Git commit SHA (`sha-<commit_hash>`) tags for versioned rollbacks.
+- **Build Caching**: Leverages GitHub Actions cache backend (`cache-from`/`cache-to` with `type=gha`) to drastically speed up image layer construction.
+- **Images Pushed**:
+  - `ghcr.io/sasivarnasarma/nextask-client:latest`
+  - `ghcr.io/sasivarnasarma/nextask-server:latest`
+
+### 2. Automated EC2 Deployment (`deploy.yml`)
+
+Triggered automatically upon the successful completion of the Build and Publish workflow.
+
+- **SSH Deployment**: Securely logs into the target AWS EC2 production host using repository SSH secrets.
+- **Production Pull**: Fetches the pre-compiled images from GHCR using the dual compose file structure:
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+  ```
+- **Detached Launch**: Launches the updated stack in detached mode with zero downtime:
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+  ```
+- **Resource Clean-up**: Executes `docker image prune -af` to delete dangling/unused build layers, preserving server storage.
 
 ---
 

@@ -36,12 +36,10 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
 
   const isActive = (path: string) => location.pathname === path;
 
-  const handleLogout = async () => {
-    try {
-      await unsubscribe();
-    } catch (e) {
+  const handleLogout = () => {
+    unsubscribe().catch((e) => {
       console.error('Failed to unsubscribe push notifications on logout:', e);
-    }
+    });
     logout();
     navigate('/login');
   };

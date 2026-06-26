@@ -26,12 +26,10 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { unsubscribe } = useWebPush();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      await unsubscribe();
-    } catch (e) {
+  const handleLogout = () => {
+    unsubscribe().catch((e) => {
       console.error('Failed to unsubscribe push notifications on logout:', e);
-    }
+    });
     logout();
     navigate('/login');
   };
