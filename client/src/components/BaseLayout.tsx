@@ -109,7 +109,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
                   color: 'transparent',
                 }}
               >
-                NexTask
+                nexTask
               </span>
             </div>
             <button

@@ -49,7 +49,7 @@ export function Sidebar(_props: { isOpen?: boolean }) {
                 color: 'transparent',
               }}
             >
-              NexTask
+              nexTask
             </span>
           </div>
         </div>

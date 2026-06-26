@@ -242,7 +242,7 @@ export default function ForgotPasswordPage() {
         {/* Centered Logo & Branding Section */}
         <div className="flex flex-col items-center mb-8 select-none animate-fade-in-down">
           <h2 className="text-3xl font-extrabold tracking-wider bg-gradient-to-r from-[#c084fc] via-[#818cf8] to-[#60a5fa] bg-clip-text text-transparent filter drop-shadow-[0_0_8px_rgba(99,102,241,0.3)]">
-            NexTask
+            nexTask
           </h2>
         </div>
 
