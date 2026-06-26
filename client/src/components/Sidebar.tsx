@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useWebPush } from '@/hooks/useWebPush';
 import { useAuthStore } from '@/store/auth.store';
 
-export function Sidebar(_props: { isOpen?: boolean }) {
+export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);

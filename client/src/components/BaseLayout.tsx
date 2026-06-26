@@ -1,3 +1,4 @@
+import { Notification } from '@nextask/types';
 import { useQuery } from '@tanstack/react-query';
 import { LogOut, LucideIcon, Menu, X } from 'lucide-react';
 import React from 'react';
@@ -52,7 +53,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
     refetchInterval: 30000,
   });
 
-  const unreadNotificationsCount = notifications.filter((n: any) => !n.isRead).length;
+  const unreadNotificationsCount = notifications.filter((n: Notification) => !n.isRead).length;
 
   // Derive display role name
   const displayRole =

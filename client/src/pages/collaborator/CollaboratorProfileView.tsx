@@ -1,14 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Lock, Mail, Shield, User, Camera } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import { Camera, Loader2, Lock, Mail, Shield, User } from 'lucide-react';
+import React, { useState } from 'react';
 
 import { changePassword, getProfile, updateProfile } from '@/api/profile.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useToastStore } from '@/store/toast.store';
 import { extractApiError } from '@/lib/apiError';
 import { useAuthStore } from '@/store/auth.store';
+import { useToastStore } from '@/store/toast.store';
 
 export const CollaboratorProfileView: React.FC = () => {
   const queryClient = useQueryClient();
@@ -16,27 +16,20 @@ export const CollaboratorProfileView: React.FC = () => {
   const showError = useToastStore((s) => s.showError);
   const updateUserStore = useAuthStore((s) => s.updateUser);
 
-  // Profile Form States
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-
-  // Password Change Form States
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
   // Fetch Profile
   const { data: profile, isLoading } = useQuery({
     queryKey: ['collaborator-profile-me'],
     queryFn: getProfile,
   });
 
-  useEffect(() => {
-    if (profile) {
-      setName(profile.name || '');
-      setEmail(profile.email || '');
-    }
-  }, [profile]);
+  // Profile Form States
+  const [name, setName] = useState(profile?.name || '');
+  const email = profile?.email || '';
+
+  // Password Change Form States
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Mutations
   const updateProfileMutation = useMutation({
@@ -80,7 +73,11 @@ export const CollaboratorProfileView: React.FC = () => {
       showError('New password must be at least 6 characters.');
       return;
     }
-    changePasswordMutation.mutate({ currentPassword, newPassword, confirmNewPassword: confirmPassword });
+    changePasswordMutation.mutate({
+      currentPassword,
+      newPassword,
+      confirmNewPassword: confirmPassword,
+    });
   };
 
   return (
@@ -99,7 +96,7 @@ export const CollaboratorProfileView: React.FC = () => {
           <span className="text-xs font-semibold">Reading user settings...</span>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        <div key={profile?.id} className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
           {/* Left profile card */}
           <Card className="bg-slate-900 border-slate-805 rounded-2xl overflow-hidden p-5 flex flex-col items-center text-center">
             <div className="relative group">
@@ -110,7 +107,9 @@ export const CollaboratorProfileView: React.FC = () => {
                 <Camera size={18} className="text-white" />
               </div>
             </div>
-            <h3 className="text-sm font-semibold mt-4 text-slate-200">{profile?.name || 'Collaborator'}</h3>
+            <h3 className="text-sm font-semibold mt-4 text-slate-200">
+              {profile?.name || 'Collaborator'}
+            </h3>
             <span className="text-[10px] text-slate-500 mt-1 block">{profile?.email}</span>
             <div className="w-full h-px bg-slate-800/60 my-4" />
             <div className="w-full space-y-3 text-left">
@@ -135,7 +134,9 @@ export const CollaboratorProfileView: React.FC = () => {
                 <User className="text-blue-500 w-4 h-4" />
                 <div>
                   <CardTitle className="text-sm font-semibold">General Information</CardTitle>
-                  <CardDescription className="text-[10px] text-slate-455 mt-0.5">Customize your displayed account name.</CardDescription>
+                  <CardDescription className="text-[10px] text-slate-455 mt-0.5">
+                    Customize your displayed account name.
+                  </CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -150,7 +151,9 @@ export const CollaboratorProfileView: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-500">Email Address (Read Only)</label>
+                    <label className="text-xs font-semibold text-slate-500">
+                      Email Address (Read Only)
+                    </label>
                     <Input
                       disabled
                       value={email}
@@ -162,7 +165,9 @@ export const CollaboratorProfileView: React.FC = () => {
                     disabled={updateProfileMutation.isPending}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs h-9 px-4 self-end"
                   >
-                    {updateProfileMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
+                    {updateProfileMutation.isPending && (
+                      <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                    )}
                     Save Details
                   </Button>
                 </form>
@@ -175,7 +180,9 @@ export const CollaboratorProfileView: React.FC = () => {
                 <Lock className="text-blue-500 w-4 h-4" />
                 <div>
                   <CardTitle className="text-sm font-semibold">Change Password</CardTitle>
-                  <CardDescription className="text-[10px] text-slate-455 mt-0.5">Modify the authentication password for security.</CardDescription>
+                  <CardDescription className="text-[10px] text-slate-455 mt-0.5">
+                    Modify the authentication password for security.
+                  </CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -202,7 +209,9 @@ export const CollaboratorProfileView: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-400">Confirm New Password</label>
+                      <label className="text-xs font-semibold text-slate-400">
+                        Confirm New Password
+                      </label>
                       <Input
                         type="password"
                         required
@@ -217,7 +226,9 @@ export const CollaboratorProfileView: React.FC = () => {
                     disabled={changePasswordMutation.isPending}
                     className="bg-indigo-600 hover:bg-indigo-755 text-white font-semibold rounded-xl text-xs h-9 px-4 self-end"
                   >
-                    {changePasswordMutation.isPending && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
+                    {changePasswordMutation.isPending && (
+                      <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                    )}
                     Update Password
                   </Button>
                 </form>

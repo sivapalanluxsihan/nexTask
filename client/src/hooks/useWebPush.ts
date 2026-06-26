@@ -26,23 +26,25 @@ export function useWebPush() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
-  const checkCurrentSubscription = useCallback(async () => {
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      setIsSubscribed(!!subscription);
-    } catch (err) {
-      console.error('Error checking current push subscription:', err);
-    }
-  }, []);
-
   // Check current subscription on mount
   useEffect(() => {
+    let active = true;
     if (isSupported) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      checkCurrentSubscription();
+      navigator.serviceWorker.ready
+        .then((registration) => registration.pushManager.getSubscription())
+        .then((subscription) => {
+          if (active) {
+            setIsSubscribed(!!subscription);
+          }
+        })
+        .catch((err) => {
+          console.error('Error checking current push subscription:', err);
+        });
     }
-  }, [isSupported, checkCurrentSubscription]);
+    return () => {
+      active = false;
+    };
+  }, [isSupported]);
 
   const subscribe = useCallback(async () => {
     if (!isSupported) return false;

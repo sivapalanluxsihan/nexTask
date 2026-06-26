@@ -131,11 +131,12 @@ async function main() {
 
   // Seed tasks
   console.log('📦 Creating sample tasks with tags and positioning...');
-  const task1 =
-    (await prisma.task.findFirst({
+  if (
+    !(await prisma.task.findFirst({
       where: { title: 'Setup Core API Scaffolding', projectId: project.id },
-    })) ??
-    (await prisma.task.create({
+    }))
+  ) {
+    await prisma.task.create({
       data: {
         title: 'Setup Core API Scaffolding',
         description: 'Initialize express with typescript, controllers and routing layers.',
@@ -146,7 +147,8 @@ async function main() {
         projectId: project.id,
         createdBy: pmUser.id,
       },
-    }));
+    });
+  }
 
   const task2 =
     (await prisma.task.findFirst({

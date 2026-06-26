@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
 import { Task } from '@nextask/types';
-import { Card } from '@/components/ui/card';
+import React, { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface TaskCalendarProps {
   tasks: Task[];
@@ -34,7 +35,9 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({ tasks, onTaskClick }
             variant="outline"
             size="sm"
             className="bg-slate-950 border-slate-850 h-8 text-xs font-semibold rounded-xl text-slate-300 hover:text-white"
-            onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}
+            onClick={() =>
+              setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))
+            }
           >
             Previous
           </Button>
@@ -42,7 +45,9 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({ tasks, onTaskClick }
             variant="outline"
             size="sm"
             className="bg-slate-950 border-slate-850 h-8 text-xs font-semibold rounded-xl text-slate-300 hover:text-white"
-            onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}
+            onClick={() =>
+              setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))
+            }
           >
             Next
           </Button>
@@ -61,7 +66,9 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({ tasks, onTaskClick }
 
       <div className="grid grid-cols-7 gap-2.5">
         {getDaysInMonth().map((day, idx) => {
-          const dayTasks = tasks.filter((t) => t.dueDate && new Date(t.dueDate).toDateString() === day.toDateString());
+          const dayTasks = tasks.filter(
+            (t) => t.dueDate && new Date(t.dueDate).toDateString() === day.toDateString(),
+          );
           return (
             <div
               key={idx}

@@ -87,8 +87,9 @@ export const AdminDashboardView: React.FC = () => {
   const pendingTasks = tasks.filter(
     (t) => t.status === 'TODO' || t.status === 'IN_PROGRESS',
   ).length;
+  const [now] = React.useState(() => Date.now());
   const overdueTasks = tasks.filter(
-    (t) => t.dueDate && new Date(t.dueDate).getTime() < Date.now() && t.status !== 'DONE',
+    (t) => t.dueDate && new Date(t.dueDate).getTime() < now && t.status !== 'DONE',
   ).length;
 
   const projectProgressRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -297,7 +298,7 @@ export const AdminDashboardView: React.FC = () => {
                 <div className="relative pl-5 border-l border-slate-850 space-y-6">
                   {activities.slice(0, 10).map((act) => (
                     <div key={act.id} className="relative">
-                      <span className="absolute -left-[26px] top-1.5 bg-slate-900 border border-slate-850 rounded-full p-1 h-3.5 w-3.5 flex items-center justify-center">
+                      <span className="absolute left-[-26px] top-1.5 bg-slate-900 border border-slate-850 rounded-full p-1 h-3.5 w-3.5 flex items-center justify-center">
                         <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
                       </span>
                       <div className="space-y-0.5">

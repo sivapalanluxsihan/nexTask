@@ -1,4 +1,5 @@
 import { Role, Task } from '@prisma/client';
+
 import { prisma } from '../lib/prisma';
 
 export type TaskAction =
@@ -23,7 +24,7 @@ export class PermissionService {
     userRole: Role,
     projectId: string,
     action: TaskAction,
-    task?: Task | null
+    task?: Task | null,
   ): Promise<boolean> {
     // 1. ADMIN has global system-wide access
     if (userRole === 'ADMIN') {

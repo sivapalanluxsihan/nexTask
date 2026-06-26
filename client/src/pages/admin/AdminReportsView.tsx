@@ -57,8 +57,9 @@ export const AdminReportsView: React.FC = () => {
   const pendingTasks = tasks.filter(
     (t) => t.status === 'TODO' || t.status === 'IN_PROGRESS',
   ).length;
+  const [now] = React.useState(() => Date.now());
   const overdueTasks = tasks.filter(
-    (t) => t.dueDate && new Date(t.dueDate).getTime() < Date.now() && t.status !== 'DONE',
+    (t) => t.dueDate && new Date(t.dueDate).getTime() < now && t.status !== 'DONE',
   ).length;
 
   // Chart Data
@@ -106,7 +107,7 @@ export const AdminReportsView: React.FC = () => {
       ['Overdue Tasks', overdueTasks],
     ];
 
-    let csvContent =
+    const csvContent =
       'data:text/csv;charset=utf-8,' +
       [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);

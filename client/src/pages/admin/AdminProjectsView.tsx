@@ -1,14 +1,6 @@
 import { Project, ProjectMemberView } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Archive,
-  Edit,
-  Folder,
-  Loader2,
-  Search,
-  Trash2,
-  Users,
-} from 'lucide-react';
+import { Archive, Edit, Folder, Loader2, Search, Trash2, Users } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -95,7 +87,7 @@ export const AdminProjectsView: React.FC = () => {
             const completed = tasks.filter((t) => t.status === 'DONE').length;
             const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
             results[p.id] = { total, completed, rate };
-          } catch (e) {
+          } catch {
             results[p.id] = { total: 0, completed: 0, rate: 0 };
           }
         }),
@@ -108,7 +100,8 @@ export const AdminProjectsView: React.FC = () => {
   // 3. Fetch Project Members for current managed project
   const { data: members = [], isLoading: membersLoading } = useQuery<ProjectMemberView[]>({
     queryKey: ['project-members', managingProject?.id],
-    queryFn: () => (managingProject ? fetchProjectMembers(managingProject.id) : Promise.resolve([])),
+    queryFn: () =>
+      managingProject ? fetchProjectMembers(managingProject.id) : Promise.resolve([]),
     enabled: !!managingProject,
   });
 
@@ -160,8 +153,13 @@ export const AdminProjectsView: React.FC = () => {
 
   // Member Mutations
   const addMemberMutation = useMutation({
-    mutationFn: ({ projectId, body }: { projectId: string; body: { userId: string; role: 'PROJECT_MANAGER' | 'COLLABORATOR' } }) =>
-      addProjectMember(projectId, body),
+    mutationFn: ({
+      projectId,
+      body,
+    }: {
+      projectId: string;
+      body: { userId: string; role: 'PROJECT_MANAGER' | 'COLLABORATOR' };
+    }) => addProjectMember(projectId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-members', managingProject?.id] });
       setSelectedUserId('');
@@ -173,8 +171,15 @@ export const AdminProjectsView: React.FC = () => {
   });
 
   const changeRoleMutation = useMutation({
-    mutationFn: ({ projectId, userId, body }: { projectId: string; userId: string; body: { role: 'PROJECT_MANAGER' | 'COLLABORATOR' } }) =>
-      updateProjectMemberRole(projectId, userId, body),
+    mutationFn: ({
+      projectId,
+      userId,
+      body,
+    }: {
+      projectId: string;
+      userId: string;
+      body: { role: 'PROJECT_MANAGER' | 'COLLABORATOR' };
+    }) => updateProjectMemberRole(projectId, userId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-members', managingProject?.id] });
       showSuccess('Member role updated.');
@@ -235,8 +240,7 @@ export const AdminProjectsView: React.FC = () => {
 
   // Filter application
   const filteredProjects = projects.filter((p) => {
-    const statusMatches =
-      statusFilter === 'ALL' || p.status === statusFilter;
+    const statusMatches = statusFilter === 'ALL' || p.status === statusFilter;
     const searchMatches =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -268,7 +272,8 @@ export const AdminProjectsView: React.FC = () => {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Project Administration</h1>
           <p className="text-slate-400 mt-1 text-sm">
-            Overview and configure project metadata, managers, team memberships, and archival states.
+            Overview and configure project metadata, managers, team memberships, and archival
+            states.
           </p>
         </div>
       </div>
@@ -278,8 +283,18 @@ export const AdminProjectsView: React.FC = () => {
         {[
           { label: 'Total Projects', value: totalCount, icon: Folder, color: 'text-indigo-400' },
           { label: 'Active Projects', value: activeCount, icon: Folder, color: 'text-emerald-400' },
-          { label: 'Completed Projects', value: completedCount, icon: Folder, color: 'text-blue-400' },
-          { label: 'Archived Projects', value: archivedCount, icon: Folder, color: 'text-amber-400' },
+          {
+            label: 'Completed Projects',
+            value: completedCount,
+            icon: Folder,
+            color: 'text-blue-400',
+          },
+          {
+            label: 'Archived Projects',
+            value: archivedCount,
+            icon: Folder,
+            color: 'text-amber-400',
+          },
         ].map((card, i) => {
           const Icon = card.icon;
           return (
@@ -357,7 +372,10 @@ export const AdminProjectsView: React.FC = () => {
                   {paginatedProjects.map((p) => {
                     const prog = progressMap[p.id] || { total: 0, completed: 0, rate: 0 };
                     return (
-                      <TableRow key={p.id} className="hover:bg-slate-950/20 border-b border-slate-800/60 transition-colors">
+                      <TableRow
+                        key={p.id}
+                        className="hover:bg-slate-950/20 border-b border-slate-800/60 transition-colors"
+                      >
                         <TableCell className="font-semibold text-slate-100 pl-6">
                           <div>
                             <div>{p.name}</div>
@@ -484,8 +502,6 @@ export const AdminProjectsView: React.FC = () => {
         </div>
       )}
 
-
-
       {/* Edit Project Dialog */}
       <Dialog open={!!editingProject} onOpenChange={(open) => !open && setEditingProject(null)}>
         <DialogContent className="bg-slate-900 border-slate-800 text-slate-100 sm:max-w-[425px]">
@@ -534,7 +550,9 @@ export const AdminProjectsView: React.FC = () => {
                 disabled={updateProjectMutation.isPending}
                 className="bg-indigo-600 hover:bg-indigo-755 text-white"
               >
-                {updateProjectMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {updateProjectMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Save Changes
               </Button>
             </DialogFooter>
@@ -552,7 +570,8 @@ export const AdminProjectsView: React.FC = () => {
             <DialogDescription className="text-slate-400 mt-2">
               Are you sure you want to permanently delete project{' '}
               <strong className="text-slate-100">{deletingProject?.name}</strong>? This will purge
-              all tasks, assignees, and comments linked to this project board. This cannot be undone.
+              all tasks, assignees, and comments linked to this project board. This cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
 
@@ -591,7 +610,10 @@ export const AdminProjectsView: React.FC = () => {
           </DialogHeader>
 
           {/* Add Member Section */}
-          <form onSubmit={handleAddMember} className="flex flex-col sm:flex-row gap-3 py-3 border-b border-slate-850">
+          <form
+            onSubmit={handleAddMember}
+            className="flex flex-col sm:flex-row gap-3 py-3 border-b border-slate-850"
+          >
             <div className="flex-1 flex flex-col gap-1.5">
               <span className="text-[10px] font-bold text-slate-400 uppercase">User</span>
               <select
@@ -612,7 +634,9 @@ export const AdminProjectsView: React.FC = () => {
               <span className="text-[10px] font-bold text-slate-400 uppercase">Role</span>
               <select
                 value={memberRole}
-                onChange={(e) => setMemberRole(e.target.value as any)}
+                onChange={(e) =>
+                  setMemberRole(e.target.value as 'PROJECT_MANAGER' | 'COLLABORATOR')
+                }
                 className="h-9 px-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="COLLABORATOR">Collaborator</option>
@@ -644,7 +668,10 @@ export const AdminProjectsView: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {members.map((m) => (
-                  <div key={m.userId} className="flex items-center justify-between gap-3 p-2 bg-slate-950/20 border border-slate-850 rounded-xl">
+                  <div
+                    key={m.userId}
+                    className="flex items-center justify-between gap-3 p-2 bg-slate-950/20 border border-slate-850 rounded-xl"
+                  >
                     <div className="min-w-0 leading-tight">
                       <div className="text-xs font-semibold text-slate-100 truncate">
                         {m.user.name || 'Unnamed'}
@@ -660,7 +687,7 @@ export const AdminProjectsView: React.FC = () => {
                           changeRoleMutation.mutate({
                             projectId: managingProject!.id,
                             userId: m.userId,
-                            body: { role: e.target.value as any },
+                            body: { role: e.target.value as 'PROJECT_MANAGER' | 'COLLABORATOR' },
                           })
                         }
                         className="h-8 px-2 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-200 outline-none"

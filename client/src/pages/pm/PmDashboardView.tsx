@@ -1,5 +1,7 @@
+import { Project, ProjectMemberView, Task } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  AlertCircle,
   Calendar,
   CheckCircle,
   Clock,
@@ -7,7 +9,6 @@ import {
   Loader2,
   TrendingUp,
   Users,
-  AlertCircle,
 } from 'lucide-react';
 import React, { useState } from 'react';
 import {
@@ -38,7 +39,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { extractApiError } from '@/lib/apiError';
 import { useToastStore } from '@/store/toast.store';
-import { Project, Task, ProjectMemberView } from '@nextask/types';
 
 export const PmDashboardView: React.FC = () => {
   const queryClient = useQueryClient();
@@ -215,31 +215,27 @@ export const PmDashboardView: React.FC = () => {
     };
   });
 
-
-
   // Recent simulated activities based on task updates
-  const recentActivities = tasks
-    .slice(0, 6)
-    .map((task) => {
-      let action = 'Task updated';
-      let iconColor = 'text-blue-400';
-      if (task.status === 'DONE') {
-        action = `Task "${task.title}" was completed`;
-        iconColor = 'text-emerald-400';
-      } else if (task.status === 'IN_PROGRESS') {
-        action = `Task "${task.title}" is in progress`;
-        iconColor = 'text-amber-400';
-      } else {
-        action = `Task "${task.title}" was added`;
-        iconColor = 'text-indigo-400';
-      }
-      return {
-        id: task.id,
-        action,
-        time: task.updatedAt ? new Date(task.updatedAt).toLocaleDateString() : 'Just now',
-        color: iconColor,
-      };
-    });
+  const recentActivities = tasks.slice(0, 6).map((task) => {
+    let action = 'Task updated';
+    let iconColor = 'text-blue-400';
+    if (task.status === 'DONE') {
+      action = `Task "${task.title}" was completed`;
+      iconColor = 'text-emerald-400';
+    } else if (task.status === 'IN_PROGRESS') {
+      action = `Task "${task.title}" is in progress`;
+      iconColor = 'text-amber-400';
+    } else {
+      action = `Task "${task.title}" was added`;
+      iconColor = 'text-indigo-400';
+    }
+    return {
+      id: task.id,
+      action,
+      time: task.updatedAt ? new Date(task.updatedAt).toLocaleDateString() : 'Just now',
+      color: iconColor,
+    };
+  });
 
   // Deadlines filtering
   const tomorrow = new Date();
@@ -251,15 +247,20 @@ export const PmDashboardView: React.FC = () => {
   endOfWeek.setDate(endOfWeek.getDate() + 7);
 
   const upcomingToday = tasks.filter(
-    (t) => t.status !== 'DONE' && t.dueDate && new Date(t.dueDate).toDateString() === todayStr
+    (t) => t.status !== 'DONE' && t.dueDate && new Date(t.dueDate).toDateString() === todayStr,
   );
   const upcomingTomorrow = tasks.filter(
-    (t) => t.status !== 'DONE' && t.dueDate && new Date(t.dueDate).toDateString() === tomorrowStr
+    (t) => t.status !== 'DONE' && t.dueDate && new Date(t.dueDate).toDateString() === tomorrowStr,
   );
   const upcomingThisWeek = tasks.filter((t) => {
     if (t.status === 'DONE' || !t.dueDate) return false;
     const due = new Date(t.dueDate);
-    return due >= startOfWeek && due <= endOfWeek && due.toDateString() !== todayStr && due.toDateString() !== tomorrowStr;
+    return (
+      due >= startOfWeek &&
+      due <= endOfWeek &&
+      due.toDateString() !== todayStr &&
+      due.toDateString() !== tomorrowStr
+    );
   });
 
   const isDataLoading = projectsLoading || tasksLoading || membersLoading;
@@ -339,7 +340,9 @@ export const PmDashboardView: React.FC = () => {
                   </div>
                   <div className="mt-4">
                     <h3 className="text-3xl font-extrabold tracking-tight">{card.value}</h3>
-                    <p className="text-[10px] text-slate-500 font-medium mt-1 truncate">{card.detail}</p>
+                    <p className="text-[10px] text-slate-500 font-medium mt-1 truncate">
+                      {card.detail}
+                    </p>
                   </div>
                 </div>
               );
@@ -369,12 +372,19 @@ export const PmDashboardView: React.FC = () => {
                       <XAxis dataKey="name" stroke="#64748B" fontSize={10} tickLine={false} />
                       <YAxis stroke="#64748B" fontSize={10} tickLine={false} domain={[0, 100]} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1E293B', borderRadius: 8 }}
+                        contentStyle={{
+                          backgroundColor: '#0B0F19',
+                          borderColor: '#1E293B',
+                          borderRadius: 8,
+                        }}
                         labelStyle={{ color: '#F1F5F9', fontWeight: 'bold', fontSize: 11 }}
                       />
                       <Bar dataKey="Progress" fill="#3B82F6" radius={[4, 4, 0, 0]}>
                         {projectProgressData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3B82F6' : '#6366F1'} />
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={index % 2 === 0 ? '#3B82F6' : '#6366F1'}
+                          />
                         ))}
                       </Bar>
                     </BarChart>
@@ -408,11 +418,18 @@ export const PmDashboardView: React.FC = () => {
                             dataKey="value"
                           >
                             {statusData.map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={STATUS_COLORS[index % STATUS_COLORS.length]}
+                              />
                             ))}
                           </Pie>
                           <Tooltip
-                            contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1E293B', borderRadius: 8 }}
+                            contentStyle={{
+                              backgroundColor: '#0B0F19',
+                              borderColor: '#1E293B',
+                              borderRadius: 8,
+                            }}
                           />
                         </PieChart>
                       </ResponsiveContainer>
@@ -420,8 +437,13 @@ export const PmDashboardView: React.FC = () => {
                     <div className="flex justify-around text-xs font-semibold">
                       {statusData.map((d, i) => (
                         <div key={d.name} className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[i] }} />
-                          <span className="text-slate-400">{d.name} ({d.value})</span>
+                          <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ backgroundColor: STATUS_COLORS[i] }}
+                          />
+                          <span className="text-slate-400">
+                            {d.name} ({d.value})
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -456,12 +478,19 @@ export const PmDashboardView: React.FC = () => {
                             paddingAngle={3}
                             dataKey="value"
                           >
-                             {priorityData.map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[index % PRIORITY_COLORS.length]} />
+                            {priorityData.map((_, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={PRIORITY_COLORS[index % PRIORITY_COLORS.length]}
+                              />
                             ))}
                           </Pie>
                           <Tooltip
-                            contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1E293B', borderRadius: 8 }}
+                            contentStyle={{
+                              backgroundColor: '#0B0F19',
+                              borderColor: '#1E293B',
+                              borderRadius: 8,
+                            }}
                           />
                         </PieChart>
                       </ResponsiveContainer>
@@ -469,8 +498,13 @@ export const PmDashboardView: React.FC = () => {
                     <div className="flex justify-around text-xs font-semibold">
                       {priorityData.map((d, i) => (
                         <div key={d.name} className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PRIORITY_COLORS[i] }} />
-                          <span className="text-slate-400">{d.name} ({d.value})</span>
+                          <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ backgroundColor: PRIORITY_COLORS[i] }}
+                          />
+                          <span className="text-slate-400">
+                            {d.name} ({d.value})
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -495,10 +529,15 @@ export const PmDashboardView: React.FC = () => {
                 ) : (
                   <div className="space-y-4">
                     {recentActivities.map((act) => (
-                      <div key={act.id} className="flex items-start gap-3 border-b border-slate-850 pb-3 last:border-0 last:pb-0">
+                      <div
+                        key={act.id}
+                        className="flex items-start gap-3 border-b border-slate-850 pb-3 last:border-0 last:pb-0"
+                      >
                         <div className={`mt-1 font-bold ${act.color} text-xs`}>●</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-slate-200 truncate">{act.action}</p>
+                          <p className="text-xs font-medium text-slate-200 truncate">
+                            {act.action}
+                          </p>
                           <span className="text-[10px] text-slate-500">{act.time}</span>
                         </div>
                       </div>
@@ -627,7 +666,9 @@ export const PmDashboardView: React.FC = () => {
                 disabled={createProjectMutation.isPending}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl"
               >
-                {createProjectMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {createProjectMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Create Project
               </Button>
             </DialogFooter>
@@ -689,7 +730,7 @@ export const PmDashboardView: React.FC = () => {
                 <label className="text-xs font-semibold text-slate-400">Priority</label>
                 <select
                   value={taskPriority}
-                  onChange={(e) => setTaskPriority(e.target.value as any)}
+                  onChange={(e) => setTaskPriority(e.target.value as 'LOW' | 'MEDIUM' | 'HIGH')}
                   className="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-800 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-indigo-500"
                 >
                   <option value="LOW">Low</option>

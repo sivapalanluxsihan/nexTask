@@ -1,13 +1,7 @@
+import { Bell, FileText, Folder, LayoutDashboard, MessageSquare, User } from 'lucide-react';
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  FileText,
-  Folder,
-  Bell,
-  User,
-  MessageSquare,
-} from 'lucide-react';
+
 import { BaseLayout } from '@/components/BaseLayout';
 
 interface CollaboratorLayoutProps {

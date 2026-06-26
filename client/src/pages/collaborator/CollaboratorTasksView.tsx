@@ -1,4 +1,4 @@
-import { Comment, Project, ProjectMemberView, Task } from '@nextask/types';
+import { Comment, Project, ProjectMemberView, Task, UpdateTaskRequest } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Calendar as CalendarIcon,
@@ -8,7 +8,7 @@ import {
   Search,
   Send,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { createTaskAttachment, getPresignedUploadUrl, uploadFileToS3 } from '@/api/attachments.api';
@@ -37,14 +37,13 @@ export const CollaboratorTasksView: React.FC = () => {
   const queryClient = useQueryClient();
   const showSuccess = useToastStore((s) => s.showSuccess);
   const showError = useToastStore((s) => s.showError);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // View selection layout (defaults to board or query param)
   const initialLayout = searchParams.get('layout') === 'board' ? 'board' : 'board';
   const [viewMode, setViewMode] = useState<'table' | 'board' | 'calendar'>(initialLayout);
 
   // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [projectFilter, setProjectFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [priorityFilter, setPriorityFilter] = useState('ALL');
@@ -52,9 +51,6 @@ export const CollaboratorTasksView: React.FC = () => {
     'title' | 'dueDate' | 'priority' | 'status' | 'updatedAt'
   >('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-
-  // Selected entities for details drawer
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   // Comments & Attachments uploading state
   const [commentText, setCommentText] = useState('');
@@ -71,24 +67,36 @@ export const CollaboratorTasksView: React.FC = () => {
     queryFn: fetchMyTasks,
   });
 
-  // Sync search query param
-  useEffect(() => {
-    const searchVal = searchParams.get('search');
-    if (searchVal !== null) {
-      setSearchQuery(searchVal);
-    }
-  }, [searchParams]);
+  // Derived Search & Selected Task state from URL (Single Source of Truth)
+  const searchQuery = searchParams.get('search') || '';
+  const taskId = searchParams.get('taskId');
+  const selectedTask = taskId ? myAssignedTasks.find((t) => t.id === taskId) || null : null;
 
-  // Sync taskId search param to auto-open task details
-  useEffect(() => {
-    const taskId = searchParams.get('taskId');
-    if (taskId && myAssignedTasks.length > 0) {
-      const task = myAssignedTasks.find((t) => t.id === taskId);
+  // Handlers to update URL state
+  const handleTaskClick = (task: Task | null) => {
+    setSearchParams((prev) => {
       if (task) {
-        setSelectedTask(task);
+        prev.set('taskId', task.id);
+      } else {
+        prev.delete('taskId');
       }
-    }
-  }, [searchParams, myAssignedTasks]);
+      return prev;
+    });
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchParams(
+      (prev) => {
+        if (val) {
+          prev.set('search', val);
+        } else {
+          prev.delete('search');
+        }
+        return prev;
+      },
+      { replace: true },
+    );
+  };
 
   const { data: taskDetails, refetch: refetchTaskDetails } = useQuery<Task>({
     queryKey: ['collaborator-task-details', selectedTask?.id],
@@ -113,9 +121,9 @@ export const CollaboratorTasksView: React.FC = () => {
   const currentProject = projects.find((p) => p.id === selectedTask?.projectId);
   const projectManager = projectMembers.find((m) => m.role === 'PROJECT_MANAGER')?.user;
 
-  // Mutations
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: any }) => updateTask(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateTaskRequest }) =>
+      updateTask(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['collaborator-tasks-list'] });
       refetchTaskDetails();
@@ -190,8 +198,8 @@ export const CollaboratorTasksView: React.FC = () => {
 
   // Sorting
   const sortedTasks = [...filteredTasks].sort((a, b) => {
-    let aVal: any = a[sortField] || '';
-    let bVal: any = b[sortField] || '';
+    let aVal: string | number = (a[sortField] as string | number) || '';
+    let bVal: string | number = (b[sortField] as string | number) || '';
     if (sortField === 'dueDate') {
       aVal = a.dueDate ? new Date(a.dueDate).getTime() : 0;
       bVal = b.dueDate ? new Date(b.dueDate).getTime() : 0;
@@ -278,7 +286,7 @@ export const CollaboratorTasksView: React.FC = () => {
             type="text"
             placeholder="Search tasks by title..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
@@ -325,7 +333,7 @@ export const CollaboratorTasksView: React.FC = () => {
           {/* Sorting Field */}
           <select
             value={sortField}
-            onChange={(e) => setSortField(e.target.value as any)}
+            onChange={(e) => setSortField(e.target.value as typeof sortField)}
             className="h-9 px-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 outline-none w-40"
           >
             <option value="dueDate">Sort by Due Date</option>
@@ -356,7 +364,7 @@ export const CollaboratorTasksView: React.FC = () => {
           {viewMode === 'board' && (
             <TaskBoard
               tasks={sortedTasks}
-              onTaskClick={setSelectedTask}
+              onTaskClick={handleTaskClick}
               onStatusChange={(taskId, newStatus) => {
                 updateTaskMutation.mutate({
                   id: taskId,
@@ -368,18 +376,18 @@ export const CollaboratorTasksView: React.FC = () => {
 
           {/* 2. Table View */}
           {viewMode === 'table' && (
-            <TaskTable tasks={sortedTasks} projects={projects} onTaskClick={setSelectedTask} />
+            <TaskTable tasks={sortedTasks} projects={projects} onTaskClick={handleTaskClick} />
           )}
 
           {/* 3. Calendar View */}
           {viewMode === 'calendar' && (
-            <TaskCalendar tasks={sortedTasks} onTaskClick={setSelectedTask} />
+            <TaskCalendar tasks={sortedTasks} onTaskClick={handleTaskClick} />
           )}
         </div>
       )}
 
       {/* Task Details Drawer Modal */}
-      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && setSelectedTask(null)}>
+      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleTaskClick(null)}>
         <DialogContent className="max-w-4xl bg-slate-900 border-slate-800 text-slate-100 p-0 overflow-hidden sm:rounded-2xl">
           <div className="flex flex-col md:flex-row h-[80vh] md:h-[600px]">
             {/* Left side: details (read-only except for status) */}
@@ -435,7 +443,7 @@ export const CollaboratorTasksView: React.FC = () => {
                   <span className="text-[10px] text-slate-550 font-bold block uppercase tracking-wider">
                     Due Date
                   </span>
-                  <span className="text-xs font-semibold text-slate-300 block mt-1 flex items-center gap-1">
+                  <span className="text-xs font-semibold text-slate-300 flex items-center gap-1 mt-1">
                     <CalendarIcon size={12} className="text-slate-500" />
                     {selectedTask?.dueDate
                       ? new Date(selectedTask.dueDate).toLocaleDateString()
@@ -452,7 +460,7 @@ export const CollaboratorTasksView: React.FC = () => {
                       onChange={(e) =>
                         updateTaskMutation.mutate({
                           id: selectedTask.id,
-                          payload: { status: e.target.value as any },
+                          payload: { status: e.target.value as Task['status'] },
                         })
                       }
                       className="mt-1 h-9 px-3 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-300 outline-none w-full"
@@ -484,7 +492,7 @@ export const CollaboratorTasksView: React.FC = () => {
                   </div>
                 )}
                 <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
-                  {taskDetails?.attachments?.map((att: any) => (
+                  {taskDetails?.attachments?.map((att) => (
                     <div
                       key={att.id}
                       className="bg-slate-950 border border-slate-855 p-2 rounded-xl flex items-center justify-between gap-3"
