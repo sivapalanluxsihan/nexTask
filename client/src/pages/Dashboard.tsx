@@ -510,7 +510,9 @@ export function Dashboard() {
   React.useEffect(() => {
     if (!activeProjectIdResolved) return;
 
-    const socketUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+    const socketUrl = (import.meta.env.VITE_API_URL ?? '/api').startsWith('/')
+      ? window.location.origin
+      : (import.meta.env.VITE_API_URL ?? '/api');
     const token = useAuthStore.getState().token;
 
     const newSocket = io(socketUrl, {
