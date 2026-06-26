@@ -1,32 +1,27 @@
+import { Project, ProjectMemberView, Task } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  AlertTriangle,
   CheckCircle,
+  ChevronRight,
   Clock,
   Edit,
   Folder,
   Loader2,
+  Plus,
   Search,
   Trash2,
-  ChevronRight,
   X,
-  AlertTriangle,
-  Plus,
 } from 'lucide-react';
 import React, { useState } from 'react';
-import {
-  ResponsiveContainer,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 import { fetchUserProjects } from '@/api/profile.api';
 import {
-  createProject,
   addProjectMember,
   archiveProject,
   completeProject,
+  createProject,
   deleteProject,
   fetchProjectMembers,
   fetchTeamMembersAutocomplete,
@@ -34,9 +29,8 @@ import {
   updateProject,
   updateProjectMemberRole,
 } from '@/api/projects.api';
-import { listUsers } from '@/api/users.api';
-import { useAuthStore } from '@/store/auth.store';
 import { fetchTasks } from '@/api/tasks.api';
+import { listUsers } from '@/api/users.api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,10 +43,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { extractApiError } from '@/lib/apiError';
+import { useAuthStore } from '@/store/auth.store';
 import { useToastStore } from '@/store/toast.store';
-import { Project, ProjectMemberView, Task } from '@nextask/types';
 
 export const PmProjectsView: React.FC = () => {
   const queryClient = useQueryClient();
@@ -63,7 +64,9 @@ export const PmProjectsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [projectDetailTab, setProjectDetailTab] = useState<'overview' | 'members' | 'tasks' | 'timeline' | 'analytics'>('overview');
+  const [projectDetailTab, setProjectDetailTab] = useState<
+    'overview' | 'members' | 'tasks' | 'timeline' | 'analytics'
+  >('overview');
 
   // Modals
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -93,8 +96,14 @@ export const PmProjectsView: React.FC = () => {
 
   // Add Member states
   const [memberSearchQuery, setMemberSearchQuery] = useState('');
-  const [selectedAddUser, setSelectedAddUser] = useState<{ id: string; name: string | null; email: string } | null>(null);
-  const [addMemberRole, setAddMemberRole] = useState<'PROJECT_MANAGER' | 'COLLABORATOR'>('COLLABORATOR');
+  const [selectedAddUser, setSelectedAddUser] = useState<{
+    id: string;
+    name: string | null;
+    email: string;
+  } | null>(null);
+  const [addMemberRole, setAddMemberRole] = useState<'PROJECT_MANAGER' | 'COLLABORATOR'>(
+    'COLLABORATOR',
+  );
 
   // Query: fetch users (for collaborator selection)
   const { data: usersResponse } = useQuery({
@@ -103,9 +112,7 @@ export const PmProjectsView: React.FC = () => {
     enabled: isCreateOpen,
   });
 
-  const collaboratorsList = (usersResponse?.users || []).filter(
-    (u) => u.role === 'COLLABORATOR'
-  );
+  const collaboratorsList = (usersResponse?.users || []).filter((u) => u.role === 'COLLABORATOR');
 
   // Query: projects
   const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
@@ -118,9 +125,7 @@ export const PmProjectsView: React.FC = () => {
     queryKey: ['pm-all-projects-tasks', projects.map((p) => p.id).join(',')],
     queryFn: async () => {
       if (projects.length === 0) return [];
-      const tasksPromises = projects.map((p) =>
-        fetchTasks(p.id).catch(() => [] as Task[])
-      );
+      const tasksPromises = projects.map((p) => fetchTasks(p.id).catch(() => [] as Task[]));
       const results = await Promise.all(tasksPromises);
       return results.flat();
     },
@@ -128,9 +133,12 @@ export const PmProjectsView: React.FC = () => {
   });
 
   // Query: current selected project members
-  const { data: selectedProjectMembers = [], isLoading: membersLoading } = useQuery<ProjectMemberView[]>({
+  const { data: selectedProjectMembers = [], isLoading: membersLoading } = useQuery<
+    ProjectMemberView[]
+  >({
     queryKey: ['pm-selected-project-members', selectedProject?.id],
-    queryFn: () => (selectedProject ? fetchProjectMembers(selectedProject.id) : Promise.resolve([])),
+    queryFn: () =>
+      selectedProject ? fetchProjectMembers(selectedProject.id) : Promise.resolve([]),
     enabled: !!selectedProject,
   });
 
@@ -144,7 +152,10 @@ export const PmProjectsView: React.FC = () => {
   // Query: member autocomplete lookup
   const { data: autocompleteResults = [] } = useQuery({
     queryKey: ['pm-member-autocomplete', selectedProject?.id, memberSearchQuery],
-    queryFn: () => (selectedProject ? fetchTeamMembersAutocomplete(selectedProject.id, memberSearchQuery) : Promise.resolve([])),
+    queryFn: () =>
+      selectedProject
+        ? fetchTeamMembersAutocomplete(selectedProject.id, memberSearchQuery)
+        : Promise.resolve([]),
     enabled: !!selectedProject && memberSearchQuery.length > 1,
   });
 
@@ -157,7 +168,9 @@ export const PmProjectsView: React.FC = () => {
       setIsEditOpen(false);
       showSuccess('Project details updated successfully.');
       if (selectedProject) {
-        setSelectedProject((prev) => prev ? { ...prev, name: editName, description: editDesc } : null);
+        setSelectedProject((prev) =>
+          prev ? { ...prev, name: editName, description: editDesc } : null,
+        );
       }
     },
     onError: (err) => showError(extractApiError(err, 'Failed to update project.')),
@@ -169,7 +182,9 @@ export const PmProjectsView: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['pm-assigned-projects-list'] });
       showSuccess('Project archived successfully.');
       if (selectedProject) {
-        setSelectedProject((prev) => prev ? { ...prev, status: 'ARCHIVED' as any } : null);
+        setSelectedProject((prev) =>
+          prev ? { ...prev, status: 'ARCHIVED' as Project['status'] } : null,
+        );
       }
     },
     onError: (err) => showError(extractApiError(err, 'Failed to archive project.')),
@@ -181,7 +196,9 @@ export const PmProjectsView: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['pm-assigned-projects-list'] });
       showSuccess('Project completed successfully.');
       if (selectedProject) {
-        setSelectedProject((prev) => prev ? { ...prev, status: 'COMPLETED' as any } : null);
+        setSelectedProject((prev) =>
+          prev ? { ...prev, status: 'COMPLETED' as Project['status'] } : null,
+        );
       }
     },
     onError: (err) => showError(extractApiError(err, 'Failed to complete project.')),
@@ -199,10 +216,17 @@ export const PmProjectsView: React.FC = () => {
   });
 
   const addMemberMutation = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: { userId: string; role: 'PROJECT_MANAGER' | 'COLLABORATOR' } }) =>
-      addProjectMember(id, body),
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: string;
+      body: { userId: string; role: 'PROJECT_MANAGER' | 'COLLABORATOR' };
+    }) => addProjectMember(id, body),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pm-selected-project-members', selectedProject?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['pm-selected-project-members', selectedProject?.id],
+      });
       showSuccess('Team member added to project.');
       setSelectedAddUser(null);
       setMemberSearchQuery('');
@@ -211,20 +235,30 @@ export const PmProjectsView: React.FC = () => {
   });
 
   const removeMemberMutation = useMutation({
-    mutationFn: ({ id, userId }: { id: string; userId: string }) =>
-      removeProjectMember(id, userId),
+    mutationFn: ({ id, userId }: { id: string; userId: string }) => removeProjectMember(id, userId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pm-selected-project-members', selectedProject?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['pm-selected-project-members', selectedProject?.id],
+      });
       showSuccess('Team member removed.');
     },
     onError: (err) => showError(extractApiError(err, 'Failed to remove member.')),
   });
 
   const changeMemberRoleMutation = useMutation({
-    mutationFn: ({ id, userId, role }: { id: string; userId: string; role: 'PROJECT_MANAGER' | 'COLLABORATOR' }) =>
-      updateProjectMemberRole(id, userId, { role }),
+    mutationFn: ({
+      id,
+      userId,
+      role,
+    }: {
+      id: string;
+      userId: string;
+      role: 'PROJECT_MANAGER' | 'COLLABORATOR';
+    }) => updateProjectMemberRole(id, userId, { role }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pm-selected-project-members', selectedProject?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['pm-selected-project-members', selectedProject?.id],
+      });
       showSuccess('Project membership updated.');
     },
     onError: (err) => showError(extractApiError(err, 'Failed to update membership role.')),
@@ -245,8 +279,13 @@ export const PmProjectsView: React.FC = () => {
       return new Date(t.dueDate) < new Date();
     }).length;
 
-    if (overdueCount > 2) return { label: 'At Risk', style: 'bg-red-500/10 text-red-400 border-red-500/20' };
-    if (overdueCount > 0) return { label: 'Needs Attention', style: 'bg-amber-500/10 text-amber-400 border-amber-500/20' };
+    if (overdueCount > 2)
+      return { label: 'At Risk', style: 'bg-red-500/10 text-red-400 border-red-500/20' };
+    if (overdueCount > 0)
+      return {
+        label: 'Needs Attention',
+        style: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+      };
     return { label: 'Healthy', style: 'bg-emerald-500/10 text-emerald-450 border-emerald-500/20' };
   };
 
@@ -260,7 +299,8 @@ export const PmProjectsView: React.FC = () => {
   }).length;
 
   const filteredProjects = projects.filter((p) => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = statusFilter === 'ALL' || p.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -280,9 +320,7 @@ export const PmProjectsView: React.FC = () => {
       return;
     }
 
-    const isDuplicate = projects.some(
-      (p) => p.name.toLowerCase() === newName.trim().toLowerCase()
-    );
+    const isDuplicate = projects.some((p) => p.name.toLowerCase() === newName.trim().toLowerCase());
     if (isDuplicate) {
       setNameError('A project with this name already exists.');
       return;
@@ -306,8 +344,8 @@ export const PmProjectsView: React.FC = () => {
           selectedCollabs.map((userId) =>
             addProjectMember(newProject.id, { userId, role: 'COLLABORATOR' }).catch((err) => {
               console.error(`Failed to assign collaborator ${userId}:`, err);
-            })
-          )
+            }),
+          ),
         );
       }
 
@@ -363,7 +401,8 @@ export const PmProjectsView: React.FC = () => {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Project Management</h1>
           <p className="text-slate-400 mt-1 text-sm">
-            Control milestones, organize team alignment, and analyze operational metrics for assigned boards.
+            Control milestones, organize team alignment, and analyze operational metrics for
+            assigned boards.
           </p>
         </div>
       </div>
@@ -384,12 +423,25 @@ export const PmProjectsView: React.FC = () => {
         {[
           { label: 'Total Projects', value: totalCount, icon: Folder, color: 'text-indigo-400' },
           { label: 'Active Boards', value: activeCount, icon: Clock, color: 'text-amber-400' },
-          { label: 'Completed Boards', value: completedCount, icon: CheckCircle, color: 'text-emerald-400' },
-          { label: 'Delayed Boards', value: delayedCount, icon: AlertTriangle, color: 'text-red-500' },
+          {
+            label: 'Completed Boards',
+            value: completedCount,
+            icon: CheckCircle,
+            color: 'text-emerald-400',
+          },
+          {
+            label: 'Delayed Boards',
+            value: delayedCount,
+            icon: AlertTriangle,
+            color: 'text-red-500',
+          },
         ].map((c, i) => {
           const Icon = c.icon;
           return (
-            <div key={i} className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between">
+            <div
+              key={i}
+              className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between"
+            >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs text-slate-400 font-semibold">{c.label}</span>
                 <Icon className={`w-4 h-4 ${c.color}`} />
@@ -441,7 +493,9 @@ export const PmProjectsView: React.FC = () => {
                 <Table>
                   <TableHeader className="bg-slate-950/40 border-b border-slate-800/60">
                     <TableRow>
-                      <TableHead className="text-slate-350 text-xs font-bold pl-6">Project Name</TableHead>
+                      <TableHead className="text-slate-350 text-xs font-bold pl-6">
+                        Project Name
+                      </TableHead>
                       <TableHead className="text-slate-350 text-xs font-bold">Health</TableHead>
                       <TableHead className="text-slate-350 text-xs font-bold">State</TableHead>
                       <TableHead className="text-slate-350 text-xs font-bold">Progress</TableHead>
@@ -473,10 +527,14 @@ export const PmProjectsView: React.FC = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            <Badge className={`${health.style} border text-[10px]`}>{health.label}</Badge>
+                            <Badge className={`${health.style} border text-[10px]`}>
+                              {health.label}
+                            </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className="bg-slate-950 border-slate-850 text-slate-300 text-[10px]">{p.status}</Badge>
+                            <Badge className="bg-slate-950 border-slate-850 text-slate-300 text-[10px]">
+                              {p.status}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="w-24">
@@ -509,9 +567,14 @@ export const PmProjectsView: React.FC = () => {
               <CardHeader className="bg-slate-950/40 border-b border-slate-800/60 p-4">
                 <div className="flex justify-between items-start gap-4">
                   <div className="min-w-0">
-                    <CardTitle className="text-base font-bold truncate">{selectedProject.name}</CardTitle>
+                    <CardTitle className="text-base font-bold truncate">
+                      {selectedProject.name}
+                    </CardTitle>
                     <span className="text-[10px] text-slate-550 block mt-1">
-                      Due: {selectedProject.endDate ? new Date(selectedProject.endDate).toLocaleDateString() : 'No Target Date'}
+                      Due:{' '}
+                      {selectedProject.endDate
+                        ? new Date(selectedProject.endDate).toLocaleDateString()
+                        : 'No Target Date'}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -543,19 +606,21 @@ export const PmProjectsView: React.FC = () => {
 
                 {/* Tabs selection */}
                 <div className="flex items-center gap-1.5 mt-4 border-t border-slate-800/60 pt-3 overflow-x-auto scrollbar-none">
-                  {(['overview', 'members', 'tasks', 'timeline', 'analytics'] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setProjectDetailTab(tab)}
-                      className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors capitalize ${
-                        projectDetailTab === tab
-                          ? 'bg-blue-600/10 text-blue-400'
-                          : 'text-slate-400 hover:text-slate-250 hover:bg-slate-800/50'
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
+                  {(['overview', 'members', 'tasks', 'timeline', 'analytics'] as const).map(
+                    (tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setProjectDetailTab(tab)}
+                        className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors capitalize ${
+                          projectDetailTab === tab
+                            ? 'bg-blue-600/10 text-blue-400'
+                            : 'text-slate-400 hover:text-slate-250 hover:bg-slate-800/50'
+                        }`}
+                      >
+                        {tab}
+                      </button>
+                    ),
+                  )}
                 </div>
               </CardHeader>
 
@@ -564,7 +629,9 @@ export const PmProjectsView: React.FC = () => {
                 {projectDetailTab === 'overview' && (
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Description</span>
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                        Description
+                      </span>
                       <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/40 p-3 border border-slate-850 rounded-xl">
                         {selectedProject.description || 'No description provided.'}
                       </p>
@@ -572,22 +639,32 @@ export const PmProjectsView: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-slate-950/30 border border-slate-850 p-3 rounded-xl">
-                        <span className="text-[9px] text-slate-500 block uppercase font-bold">Start Date</span>
+                        <span className="text-[9px] text-slate-500 block uppercase font-bold">
+                          Start Date
+                        </span>
                         <span className="text-xs font-semibold mt-1 block">
-                          {selectedProject.createdAt ? new Date(selectedProject.createdAt).toLocaleDateString() : 'N/A'}
+                          {selectedProject.createdAt
+                            ? new Date(selectedProject.createdAt).toLocaleDateString()
+                            : 'N/A'}
                         </span>
                       </div>
                       <div className="bg-slate-950/30 border border-slate-850 p-3 rounded-xl">
-                        <span className="text-[9px] text-slate-500 block uppercase font-bold">Due Date</span>
+                        <span className="text-[9px] text-slate-500 block uppercase font-bold">
+                          Due Date
+                        </span>
                         <span className="text-xs font-semibold mt-1 block text-blue-450">
-                          {selectedProject.endDate ? new Date(selectedProject.endDate).toLocaleDateString() : 'No Target'}
+                          {selectedProject.endDate
+                            ? new Date(selectedProject.endDate).toLocaleDateString()
+                            : 'No Target'}
                         </span>
                       </div>
                     </div>
 
                     {/* Milestones list */}
                     <div className="space-y-2">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Board Actions</span>
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                        Board Actions
+                      </span>
                       <div className="flex gap-2">
                         {selectedProject.status !== 'COMPLETED' && (
                           <Button
@@ -614,8 +691,13 @@ export const PmProjectsView: React.FC = () => {
                 {projectDetailTab === 'members' && (
                   <div className="space-y-4">
                     {/* Add Member form */}
-                    <form onSubmit={handleAddMemberSubmit} className="space-y-2.5 bg-slate-950/30 border border-slate-850 p-3 rounded-xl">
-                      <span className="text-[10px] text-slate-400 font-bold block uppercase">Assign Project Member</span>
+                    <form
+                      onSubmit={handleAddMemberSubmit}
+                      className="space-y-2.5 bg-slate-950/30 border border-slate-850 p-3 rounded-xl"
+                    >
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase">
+                        Assign Project Member
+                      </span>
                       <div className="flex flex-col gap-2">
                         <Input
                           placeholder="Search teammate by name..."
@@ -643,7 +725,9 @@ export const PmProjectsView: React.FC = () => {
                         <div className="flex gap-2 items-center">
                           <select
                             value={addMemberRole}
-                            onChange={(e) => setAddMemberRole(e.target.value as any)}
+                            onChange={(e) =>
+                              setAddMemberRole(e.target.value as 'PROJECT_MANAGER' | 'COLLABORATOR')
+                            }
                             className="h-8 px-2 rounded-xl bg-slate-950 border border-slate-800 text-[10px] text-slate-200 outline-none flex-1"
                           >
                             <option value="COLLABORATOR">Collaborator</option>
@@ -667,28 +751,44 @@ export const PmProjectsView: React.FC = () => {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Roster</span>
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                          Roster
+                        </span>
                         {selectedProjectMembers.map((m) => (
-                          <div key={m.userId} className="flex items-center justify-between gap-3 bg-slate-950/20 border border-slate-850 p-2.5 rounded-xl">
+                          <div
+                            key={m.userId}
+                            className="flex items-center justify-between gap-3 bg-slate-950/20 border border-slate-850 p-2.5 rounded-xl"
+                          >
                             <div className="min-w-0">
-                              <span className="text-xs font-semibold text-slate-200 block truncate">{m.user.name || m.user.email}</span>
-                              <span className="text-[9px] text-slate-550 block mt-0.5">{m.role}</span>
+                              <span className="text-xs font-semibold text-slate-200 block truncate">
+                                {m.user.name || m.user.email}
+                              </span>
+                              <span className="text-[9px] text-slate-550 block mt-0.5">
+                                {m.role}
+                              </span>
                             </div>
                             <div className="flex items-center gap-2">
                               <select
                                 value={m.role}
-                                onChange={(e) => changeMemberRoleMutation.mutate({
-                                  id: selectedProject.id,
-                                  userId: m.userId,
-                                  role: e.target.value as any,
-                                })}
+                                onChange={(e) =>
+                                  changeMemberRoleMutation.mutate({
+                                    id: selectedProject.id,
+                                    userId: m.userId,
+                                    role: e.target.value as 'PROJECT_MANAGER' | 'COLLABORATOR',
+                                  })
+                                }
                                 className="bg-slate-950 border border-slate-800 text-[9px] h-6 px-1.5 rounded-lg text-slate-350"
                               >
                                 <option value="COLLABORATOR">COLLABORATOR</option>
                                 <option value="PROJECT_MANAGER">PROJECT_MANAGER</option>
                               </select>
                               <button
-                                onClick={() => removeMemberMutation.mutate({ id: selectedProject.id, userId: m.userId })}
+                                onClick={() =>
+                                  removeMemberMutation.mutate({
+                                    id: selectedProject.id,
+                                    userId: m.userId,
+                                  })
+                                }
                                 className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/20 rounded-lg"
                               >
                                 <X size={12} />
@@ -704,7 +804,9 @@ export const PmProjectsView: React.FC = () => {
                 {/* 3. Tasks Tab */}
                 {projectDetailTab === 'tasks' && (
                   <div className="space-y-3">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Board Tasks</span>
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                      Board Tasks
+                    </span>
                     {tasksLoading ? (
                       <div className="flex justify-center py-6 text-slate-500">
                         <Loader2 className="h-6 w-6 animate-spin" />
@@ -716,12 +818,21 @@ export const PmProjectsView: React.FC = () => {
                     ) : (
                       <div className="space-y-2">
                         {selectedProjectTasks.map((t) => (
-                          <div key={t.id} className="bg-slate-950/20 border border-slate-855 p-3 rounded-xl flex items-center justify-between gap-3">
+                          <div
+                            key={t.id}
+                            className="bg-slate-950/20 border border-slate-855 p-3 rounded-xl flex items-center justify-between gap-3"
+                          >
                             <div className="min-w-0">
-                              <span className="text-xs font-semibold text-slate-200 truncate block">{t.title}</span>
-                              <span className="text-[9px] text-slate-500 mt-1 block">Due: {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : 'N/A'}</span>
+                              <span className="text-xs font-semibold text-slate-200 truncate block">
+                                {t.title}
+                              </span>
+                              <span className="text-[9px] text-slate-500 mt-1 block">
+                                Due: {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : 'N/A'}
+                              </span>
                             </div>
-                            <Badge className="bg-slate-950 text-slate-400 border-slate-850 text-[9px]">{t.status}</Badge>
+                            <Badge className="bg-slate-950 text-slate-400 border-slate-850 text-[9px]">
+                              {t.status}
+                            </Badge>
                           </div>
                         ))}
                       </div>
@@ -732,7 +843,9 @@ export const PmProjectsView: React.FC = () => {
                 {/* 4. Timeline Tab */}
                 {projectDetailTab === 'timeline' && (
                   <div className="space-y-3">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Board Timeline schedule</span>
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                      Board Timeline schedule
+                    </span>
                     {tasksLoading ? (
                       <div className="flex justify-center py-6 text-slate-500">
                         <Loader2 className="h-6 w-6 animate-spin" />
@@ -747,10 +860,17 @@ export const PmProjectsView: React.FC = () => {
                           <div key={t.id} className="relative space-y-1">
                             <div className="absolute -left-[20px] top-1 w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-slate-900" />
                             <span className="text-[9px] font-bold text-blue-400 uppercase">
-                              {t.dueDate ? new Date(t.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Milestone TBD'}
+                              {t.dueDate
+                                ? new Date(t.dueDate).toLocaleDateString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })
+                                : 'Milestone TBD'}
                             </span>
                             <h5 className="text-xs font-semibold text-slate-200">{t.title}</h5>
-                            <p className="text-[10px] text-slate-500">{t.description || 'No description detail.'}</p>
+                            <p className="text-[10px] text-slate-500">
+                              {t.description || 'No description detail.'}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -761,7 +881,9 @@ export const PmProjectsView: React.FC = () => {
                 {/* 5. Analytics Tab */}
                 {projectDetailTab === 'analytics' && (
                   <div className="space-y-4">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Analytical Performance</span>
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                      Analytical Performance
+                    </span>
                     {selectedProjectTasks.length === 0 ? (
                       <div className="text-center py-6 text-slate-500 text-xs italic">
                         No analytical insights.
@@ -773,9 +895,22 @@ export const PmProjectsView: React.FC = () => {
                             <PieChart>
                               <Pie
                                 data={[
-                                  { name: 'Todo', value: selectedProjectTasks.filter((t) => t.status === 'TODO').length },
-                                  { name: 'In Progress', value: selectedProjectTasks.filter((t) => t.status === 'IN_PROGRESS').length },
-                                  { name: 'Completed', value: selectedProjectTasks.filter((t) => t.status === 'DONE').length },
+                                  {
+                                    name: 'Todo',
+                                    value: selectedProjectTasks.filter((t) => t.status === 'TODO')
+                                      .length,
+                                  },
+                                  {
+                                    name: 'In Progress',
+                                    value: selectedProjectTasks.filter(
+                                      (t) => t.status === 'IN_PROGRESS',
+                                    ).length,
+                                  },
+                                  {
+                                    name: 'Completed',
+                                    value: selectedProjectTasks.filter((t) => t.status === 'DONE')
+                                      .length,
+                                  },
                                 ]}
                                 innerRadius={35}
                                 outerRadius={50}
@@ -785,14 +920,26 @@ export const PmProjectsView: React.FC = () => {
                                 <Cell fill="#3B82F6" />
                                 <Cell fill="#10B981" />
                               </Pie>
-                              <Tooltip contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1E293B', fontSize: 10 }} />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#0B0F19',
+                                  borderColor: '#1E293B',
+                                  fontSize: 10,
+                                }}
+                              />
                             </PieChart>
                           </ResponsiveContainer>
                         </div>
                         <div className="flex justify-around text-[10px] text-slate-455">
-                          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> To Do</div>
-                          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500" /> In Progress</div>
-                          <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Completed</div>
+                          <div className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-amber-500" /> To Do
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-blue-500" /> In Progress
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" /> Completed
+                          </div>
                         </div>
                       </>
                     )}
@@ -802,7 +949,8 @@ export const PmProjectsView: React.FC = () => {
             </Card>
           ) : (
             <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-10 text-center text-slate-500 text-xs italic font-medium leading-relaxed">
-              Select a project board from the directory listing to inspect overview, teammates, tasks, calendar milestones, and charts.
+              Select a project board from the directory listing to inspect overview, teammates,
+              tasks, calendar milestones, and charts.
             </div>
           )}
         </div>
@@ -904,7 +1052,9 @@ export const PmProjectsView: React.FC = () => {
             <div className="grid gap-4 py-4 text-slate-200 text-left max-h-[60vh] overflow-y-auto px-1">
               {/* Project Name */}
               <div className="space-y-1.5 flex flex-col">
-                <label className="text-xs font-semibold text-slate-400">Project Name <span className="text-red-500">*</span></label>
+                <label className="text-xs font-semibold text-slate-400">
+                  Project Name <span className="text-red-500">*</span>
+                </label>
                 <Input
                   required
                   placeholder="Enter project name"
@@ -916,7 +1066,9 @@ export const PmProjectsView: React.FC = () => {
                   }}
                   className="bg-slate-950 border-slate-800 focus-visible:ring-indigo-500"
                 />
-                {nameError && <span className="text-[11px] text-red-500 font-medium">{nameError}</span>}
+                {nameError && (
+                  <span className="text-[11px] text-red-500 font-medium">{nameError}</span>
+                )}
               </div>
 
               {/* Project Key */}
@@ -962,7 +1114,9 @@ export const PmProjectsView: React.FC = () => {
                   />
                 </div>
               </div>
-              {dateError && <span className="text-[11px] text-red-500 font-medium">{dateError}</span>}
+              {dateError && (
+                <span className="text-[11px] text-red-500 font-medium">{dateError}</span>
+              )}
 
               {/* Priority & Status */}
               <div className="grid grid-cols-2 gap-4">
@@ -970,7 +1124,7 @@ export const PmProjectsView: React.FC = () => {
                   <label className="text-xs font-semibold text-slate-400">Priority</label>
                   <select
                     value={newPriority}
-                    onChange={(e) => setNewPriority(e.target.value as any)}
+                    onChange={(e) => setNewPriority(e.target.value as 'LOW' | 'MEDIUM' | 'HIGH')}
                     className="bg-slate-955 border border-slate-800 rounded-md p-2 text-xs text-slate-200 outline-none focus:ring-1 focus:ring-indigo-500"
                   >
                     <option value="LOW">Low</option>
@@ -982,7 +1136,7 @@ export const PmProjectsView: React.FC = () => {
                   <label className="text-xs font-semibold text-slate-400">Status</label>
                   <select
                     value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value as any)}
+                    onChange={(e) => setNewStatus(e.target.value as Project['status'])}
                     className="bg-slate-955 border border-slate-800 rounded-md p-2 text-xs text-slate-200 outline-none focus:ring-1 focus:ring-indigo-500"
                   >
                     <option value="ACTIVE">Active</option>
@@ -1024,18 +1178,25 @@ export const PmProjectsView: React.FC = () => {
                 <label className="text-xs font-semibold text-slate-400">Assign Collaborators</label>
                 <div className="max-h-28 overflow-y-auto border border-slate-800 bg-slate-950 rounded-md p-2 space-y-1.5">
                   {collaboratorsList.length === 0 ? (
-                    <span className="text-[11px] text-slate-500 italic block p-1">No collaborators available.</span>
+                    <span className="text-[11px] text-slate-500 italic block p-1">
+                      No collaborators available.
+                    </span>
                   ) : (
                     collaboratorsList.map((collab) => {
                       const isSelected = selectedCollabs.includes(collab.id);
                       return (
-                        <label key={collab.id} className="flex items-center gap-2 px-2 py-1 hover:bg-slate-900 rounded cursor-pointer text-xs">
+                        <label
+                          key={collab.id}
+                          className="flex items-center gap-2 px-2 py-1 hover:bg-slate-900 rounded cursor-pointer text-xs"
+                        >
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => {
                               if (isSelected) {
-                                setSelectedCollabs(selectedCollabs.filter((id) => id !== collab.id));
+                                setSelectedCollabs(
+                                  selectedCollabs.filter((id) => id !== collab.id),
+                                );
                               } else {
                                 setSelectedCollabs([...selectedCollabs, collab.id]);
                               }
@@ -1043,7 +1204,8 @@ export const PmProjectsView: React.FC = () => {
                             className="rounded bg-slate-950 border-slate-800 accent-blue-600 w-3.5 h-3.5"
                           />
                           <span className="text-slate-300 font-medium">
-                            {collab.name || collab.email} <span className="text-[10px] text-slate-500">({collab.email})</span>
+                            {collab.name || collab.email}{' '}
+                            <span className="text-[10px] text-slate-500">({collab.email})</span>
                           </span>
                         </label>
                       );

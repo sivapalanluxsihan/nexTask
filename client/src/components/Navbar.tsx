@@ -150,15 +150,15 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
           >
             <User size={16} />
           </button>
-          
+
           {isDropdownOpen && (
             <>
               {/* Overlay to close dropdown when clicking outside */}
-              <div 
-                className="fixed inset-0 z-40 cursor-default" 
+              <div
+                className="fixed inset-0 z-40 cursor-default"
                 onClick={() => setIsDropdownOpen(false)}
               />
-              <div className="absolute right-0 mt-2 w-[220px] rounded-xl bg-slate-950/95 backdrop-blur-[12px] border border-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-2 z-50 animate-fade-in origin-top-right">
+              <div className="absolute right-0 mt-2 w-[220px] rounded-xl bg-slate-950/95 backdrop-blur-md border border-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-2 z-50 animate-fade-in origin-top-right">
                 {/* User details header */}
                 <div className="px-3 py-2 border-b border-slate-800/80 mb-1.5 select-none text-left">
                   <span className="text-sm font-semibold text-slate-100 truncate block">
@@ -168,7 +168,7 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
                     {user?.email || 'member@nextask.com'}
                   </span>
                 </div>
-                
+
                 {/* Menu items */}
                 <Link
                   to="/settings"
@@ -178,7 +178,7 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
                   <span className="text-base select-none">👤</span>
                   <span>My Profile</span>
                 </Link>
-                
+
                 <Link
                   to="/settings"
                   onClick={() => setIsDropdownOpen(false)}
@@ -187,20 +187,22 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
                   <span className="text-base select-none">⚙️</span>
                   <span>Settings</span>
                 </Link>
-                
+
                 <button
                   onClick={() => {
                     setIsDropdownOpen(false);
-                    useToastStore.getState().showSuccess("Support center contact: support@nextask.com");
+                    useToastStore
+                      .getState()
+                      .showSuccess('Support center contact: support@nextask.com');
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors text-left cursor-pointer"
                 >
                   <span className="text-base select-none">❓</span>
                   <span>Help</span>
                 </button>
-                
+
                 <div className="h-px bg-slate-800/80 my-1.5" />
-                
+
                 <button
                   onClick={() => {
                     setIsDropdownOpen(false);

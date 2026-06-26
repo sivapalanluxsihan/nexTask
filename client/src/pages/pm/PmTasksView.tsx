@@ -1,5 +1,7 @@
+import { Comment, Project, ProjectMemberView, Task, UpdateTaskRequest } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  ChevronDown,
   Loader2,
   MessageSquare,
   Paperclip,
@@ -9,7 +11,6 @@ import {
   Trash2,
   UserPlus,
   X,
-  ChevronDown,
 } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -21,18 +22,11 @@ import {
 } from '@/api/attachments.api';
 import { deleteComment, fetchComments, postComment } from '@/api/comments.api';
 import { fetchUserProjects } from '@/api/profile.api';
-import {
-  assignTaskUser,
-  fetchProjectMembers,
-  unassignTaskUser,
-} from '@/api/projects.api';
-import {
-  createTask,
-  deleteTask,
-  fetchTaskById,
-  fetchTasks,
-  updateTask,
-} from '@/api/tasks.api';
+import { assignTaskUser, fetchProjectMembers, unassignTaskUser } from '@/api/projects.api';
+import { createTask, deleteTask, fetchTaskById, fetchTasks, updateTask } from '@/api/tasks.api';
+import { TaskBoard } from '@/components/tasks/TaskBoard';
+import { TaskCalendar } from '@/components/tasks/TaskCalendar';
+import { TaskTable } from '@/components/tasks/TaskTable';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,12 +38,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { useToastStore } from '@/store/toast.store';
 import { extractApiError } from '@/lib/apiError';
-import { Project, Task, ProjectMemberView, Comment } from '@nextask/types';
-import { TaskBoard } from '@/components/tasks/TaskBoard';
-import { TaskTable } from '@/components/tasks/TaskTable';
-import { TaskCalendar } from '@/components/tasks/TaskCalendar';
+import { useToastStore } from '@/store/toast.store';
 
 // ─── PM TASKS WORKSPACE VIEW ──────────────────────────────────────────────────
 export const PmTasksView: React.FC = () => {
@@ -101,9 +91,7 @@ export const PmTasksView: React.FC = () => {
     queryKey: ['pm-tasks-board-list', projects.map((p) => p.id).join(',')],
     queryFn: async () => {
       if (projects.length === 0) return [];
-      const tasksPromises = projects.map((p) =>
-        fetchTasks(p.id).catch(() => [] as Task[])
-      );
+      const tasksPromises = projects.map((p) => fetchTasks(p.id).catch(() => [] as Task[]));
       const results = await Promise.all(tasksPromises);
       return results.flat();
     },
@@ -124,7 +112,8 @@ export const PmTasksView: React.FC = () => {
 
   const { data: currentProjectMembers = [] } = useQuery<ProjectMemberView[]>({
     queryKey: ['pm-task-project-members', selectedTask?.projectId],
-    queryFn: () => (selectedTask ? fetchProjectMembers(selectedTask.projectId) : Promise.resolve([])),
+    queryFn: () =>
+      selectedTask ? fetchProjectMembers(selectedTask.projectId) : Promise.resolve([]),
     enabled: !!selectedTask,
   });
 
@@ -145,7 +134,8 @@ export const PmTasksView: React.FC = () => {
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: any }) => updateTask(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateTaskRequest }) =>
+      updateTask(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pm-tasks-board-list'] });
       refetchTaskDetails();
@@ -222,9 +212,11 @@ export const PmTasksView: React.FC = () => {
     if (!selectedTask) return;
     setEditTitle(selectedTask.title);
     setEditDesc(selectedTask.description || '');
-    setEditPriority(selectedTask.priority as any);
-    setEditStatus(selectedTask.status as any);
-    setEditDueDate(selectedTask.dueDate ? new Date(selectedTask.dueDate).toISOString().split('T')[0] : '');
+    setEditPriority(selectedTask.priority as Task['priority']);
+    setEditStatus(selectedTask.status as Task['status']);
+    setEditDueDate(
+      selectedTask.dueDate ? new Date(selectedTask.dueDate).toISOString().split('T')[0] : '',
+    );
     setIsEditingTask(true);
   };
 
@@ -235,10 +227,10 @@ export const PmTasksView: React.FC = () => {
       id: selectedTask.id,
       payload: {
         title: editTitle.trim(),
-        description: editDesc.trim() || null,
+        description: editDesc.trim() || undefined,
         priority: editPriority,
         status: editStatus,
-        dueDate: editDueDate ? new Date(editDueDate).toISOString() : null,
+        dueDate: editDueDate ? new Date(editDueDate).toISOString() : undefined,
       },
     });
   };
@@ -288,7 +280,8 @@ export const PmTasksView: React.FC = () => {
 
   // Filter application
   const filteredTasks = tasks.filter((t) => {
-    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesProject = projectFilter === 'ALL' || t.projectId === projectFilter;
     const matchesStatus = statusFilter === 'ALL' || t.status === statusFilter;
@@ -298,8 +291,8 @@ export const PmTasksView: React.FC = () => {
 
   // Sorting
   const sortedTasks = [...filteredTasks].sort((a, b) => {
-    let aVal: any = a[sortField] || '';
-    let bVal: any = b[sortField] || '';
+    let aVal: string | number = (a[sortField] as string | number) || '';
+    let bVal: string | number = (b[sortField] as string | number) || '';
     if (sortField === 'dueDate') {
       aVal = a.dueDate ? new Date(a.dueDate).getTime() : 0;
       bVal = b.dueDate ? new Date(b.dueDate).getTime() : 0;
@@ -329,7 +322,9 @@ export const PmTasksView: React.FC = () => {
                 key={mode}
                 onClick={() => setViewMode(mode)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all capitalize ${
-                  viewMode === mode ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+                  viewMode === mode
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 {mode}
@@ -410,19 +405,12 @@ export const PmTasksView: React.FC = () => {
 
           {/* 2. Table View */}
           {viewMode === 'table' && (
-            <TaskTable
-              tasks={sortedTasks}
-              projects={projects}
-              onTaskClick={setSelectedTask}
-            />
+            <TaskTable tasks={sortedTasks} projects={projects} onTaskClick={setSelectedTask} />
           )}
 
           {/* 3. Calendar View */}
           {viewMode === 'calendar' && (
-            <TaskCalendar
-              tasks={sortedTasks}
-              onTaskClick={setSelectedTask}
-            />
+            <TaskCalendar tasks={sortedTasks} onTaskClick={setSelectedTask} />
           )}
         </div>
       )}
@@ -435,9 +423,13 @@ export const PmTasksView: React.FC = () => {
             <div className="flex-1 p-6 border-r border-slate-800 overflow-y-auto space-y-5">
               <DialogHeader>
                 <div className="flex items-center justify-between">
-                  <Badge className={`text-[9px] font-bold uppercase tracking-wider ${
-                    selectedTask?.priority === 'HIGH' ? 'bg-red-500/10 text-red-400 border-red-500/25' : 'bg-slate-800'
-                  }`}>
+                  <Badge
+                    className={`text-[9px] font-bold uppercase tracking-wider ${
+                      selectedTask?.priority === 'HIGH'
+                        ? 'bg-red-500/10 text-red-400 border-red-500/25'
+                        : 'bg-slate-800'
+                    }`}
+                  >
                     {selectedTask?.priority} PRIORITY
                   </Badge>
                   <div className="flex gap-2">
@@ -460,7 +452,9 @@ export const PmTasksView: React.FC = () => {
                   </div>
                 </div>
 
-                <DialogTitle className="text-xl font-extrabold text-slate-100 pt-2">{selectedTask?.title}</DialogTitle>
+                <DialogTitle className="text-xl font-extrabold text-slate-100 pt-2">
+                  {selectedTask?.title}
+                </DialogTitle>
                 <DialogDescription className="text-slate-400 text-xs pt-1 leading-relaxed whitespace-pre-wrap">
                   {selectedTask?.description || 'No description provided.'}
                 </DialogDescription>
@@ -469,27 +463,38 @@ export const PmTasksView: React.FC = () => {
               {/* Task Dates & Details */}
               <div className="grid grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
                 <div>
-                  <span className="text-[10px] text-slate-550 font-bold block uppercase tracking-wider">Due Date</span>
+                  <span className="text-[10px] text-slate-550 font-bold block uppercase tracking-wider">
+                    Due Date
+                  </span>
                   <span className="text-xs font-semibold text-slate-300 block mt-1">
-                    {selectedTask?.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString() : 'No Target Date'}
+                    {selectedTask?.dueDate
+                      ? new Date(selectedTask.dueDate).toLocaleDateString()
+                      : 'No Target Date'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-550 font-bold block uppercase tracking-wider">Status</span>
-                  <span className="text-xs font-semibold text-slate-350 block mt-1">{selectedTask?.status}</span>
+                  <span className="text-[10px] text-slate-550 font-bold block uppercase tracking-wider">
+                    Status
+                  </span>
+                  <span className="text-xs font-semibold text-slate-350 block mt-1">
+                    {selectedTask?.status}
+                  </span>
                 </div>
               </div>
 
               {/* Assignees listing */}
               <div className="space-y-2 border-t border-slate-800/80 pt-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-slate-550 font-bold uppercase tracking-wider">Assignees</span>
+                  <span className="text-[10px] text-slate-550 font-bold uppercase tracking-wider">
+                    Assignees
+                  </span>
                   <DropdownMenuPm
                     triggerText="Assign User"
                     items={currentProjectMembers.map((m) => ({
                       id: m.userId,
                       label: m.user.name || m.user.email,
-                      isSelected: taskDetails?.assignees?.some((a: any) => a.userId === m.userId) || false,
+                      isSelected:
+                        taskDetails?.assignees?.some((a) => a.userId === m.userId) || false,
                     }))}
                     onItemClick={(userId, isSelected) => {
                       if (isSelected) {
@@ -501,9 +506,12 @@ export const PmTasksView: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {taskDetails?.assignees?.map((a: any) => (
-                    <div key={a.userId} className="bg-slate-950 border border-slate-855 px-2.5 py-1 rounded-xl text-[10px] font-semibold text-slate-300 flex items-center gap-1.5">
-                      <span>{a.user?.name || a.user?.email}</span>
+                  {taskDetails?.assignees?.map((a) => (
+                    <div
+                      key={a.userId}
+                      className="bg-slate-950 border border-slate-855 px-2.5 py-1 rounded-xl text-[10px] font-semibold text-slate-300 flex items-center gap-1.5"
+                    >
+                      <span>{a.name || a.email}</span>
                       <button
                         onClick={() => unassignUserMutation.mutate(a.userId)}
                         className="text-slate-500 hover:text-slate-300"
@@ -513,7 +521,9 @@ export const PmTasksView: React.FC = () => {
                     </div>
                   ))}
                   {(!taskDetails?.assignees || taskDetails.assignees.length === 0) && (
-                    <span className="text-xs text-slate-550 italic">No teammate assigned to this task.</span>
+                    <span className="text-xs text-slate-550 italic">
+                      No teammate assigned to this task.
+                    </span>
                   )}
                 </div>
               </div>
@@ -521,7 +531,9 @@ export const PmTasksView: React.FC = () => {
               {/* File upload attachments */}
               <div className="space-y-2.5 border-t border-slate-800/80 pt-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-550 font-bold uppercase tracking-wider">Attachments</span>
+                  <span className="text-[10px] text-slate-550 font-bold uppercase tracking-wider">
+                    Attachments
+                  </span>
                   <label className="bg-slate-950 hover:bg-slate-850 border border-slate-800/80 h-7 px-2.5 rounded-lg flex items-center gap-1.5 cursor-pointer text-[10px] font-semibold text-slate-300 transition-colors">
                     <Paperclip size={10} />
                     <span>Upload File</span>
@@ -535,11 +547,16 @@ export const PmTasksView: React.FC = () => {
                   </div>
                 )}
                 <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
-                  {taskDetails?.attachments?.map((att: any) => (
-                    <div key={att.id} className="bg-slate-950 border border-slate-855 p-2 rounded-xl flex items-center justify-between gap-3 group relative">
+                  {taskDetails?.attachments?.map((att) => (
+                    <div
+                      key={att.id}
+                      className="bg-slate-950 border border-slate-855 p-2 rounded-xl flex items-center justify-between gap-3 group relative"
+                    >
                       <div className="min-w-0 flex items-center gap-2">
                         <Paperclip size={12} className="text-slate-500 shrink-0" />
-                        <span className="text-[11px] text-slate-300 truncate max-w-[200px]">{att.filename}</span>
+                        <span className="text-[11px] text-slate-300 truncate max-w-[200px]">
+                          {att.filename}
+                        </span>
                       </div>
                       <button
                         onClick={() => deleteAttachmentMutation.mutate(att.id)}
@@ -560,12 +577,17 @@ export const PmTasksView: React.FC = () => {
             <div className="w-full md:w-80 bg-slate-950/20 flex flex-col h-full border-t md:border-t-0 md:border-l border-slate-800">
               <div className="p-4 border-b border-slate-800 flex items-center gap-2 bg-slate-950/40">
                 <MessageSquare size={16} className="text-blue-500" />
-                <h4 className="font-bold text-xs tracking-wider uppercase text-slate-400">Activity & Comments</h4>
+                <h4 className="font-bold text-xs tracking-wider uppercase text-slate-400">
+                  Activity & Comments
+                </h4>
               </div>
 
               <div className="flex-1 p-4 overflow-y-auto space-y-4 max-h-[300px] md:max-h-none">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="bg-slate-900 border border-slate-855 p-3 rounded-xl relative group text-left">
+                  <div
+                    key={comment.id}
+                    className="bg-slate-900 border border-slate-855 p-3 rounded-xl relative group text-left"
+                  >
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-[10px] font-bold text-blue-450 block truncate max-w-[120px]">
                         {comment.author?.name || comment.author?.email}
@@ -574,7 +596,9 @@ export const PmTasksView: React.FC = () => {
                         {new Date(comment.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-200 leading-relaxed word-break-all">{comment.content}</p>
+                    <p className="text-xs text-slate-200 leading-relaxed word-break-all">
+                      {comment.content}
+                    </p>
                     <button
                       onClick={() => deleteCommentMutation.mutate(comment.id)}
                       className="absolute bottom-2.5 right-2.5 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -584,7 +608,9 @@ export const PmTasksView: React.FC = () => {
                   </div>
                 ))}
                 {comments.length === 0 && (
-                  <div className="text-center py-10 text-[10px] text-slate-600 italic">No comments. Add your feedback below.</div>
+                  <div className="text-center py-10 text-[10px] text-slate-600 italic">
+                    No comments. Add your feedback below.
+                  </div>
                 )}
               </div>
 
@@ -642,7 +668,7 @@ export const PmTasksView: React.FC = () => {
                   <label className="text-xs font-semibold text-slate-400">Priority</label>
                   <select
                     value={editPriority}
-                    onChange={(e) => setEditPriority(e.target.value as any)}
+                    onChange={(e) => setEditPriority(e.target.value as Task['priority'])}
                     className="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-800 text-xs text-slate-200 outline-none"
                   >
                     <option value="LOW">Low</option>
@@ -655,7 +681,7 @@ export const PmTasksView: React.FC = () => {
                   <label className="text-xs font-semibold text-slate-400">Status</label>
                   <select
                     value={editStatus}
-                    onChange={(e) => setEditStatus(e.target.value as any)}
+                    onChange={(e) => setEditStatus(e.target.value as Task['status'])}
                     className="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-800 text-xs text-slate-200 outline-none"
                   >
                     <option value="TODO">To Do</option>
@@ -752,7 +778,7 @@ export const PmTasksView: React.FC = () => {
                   <label className="text-xs font-semibold text-slate-400">Priority</label>
                   <select
                     value={createPriority}
-                    onChange={(e) => setCreatePriority(e.target.value as any)}
+                    onChange={(e) => setCreatePriority(e.target.value as Task['priority'])}
                     className="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-800 text-xs text-slate-200 outline-none"
                   >
                     <option value="LOW">Low</option>
@@ -830,7 +856,9 @@ const DropdownMenuPm: React.FC<DropdownMenuPmProps> = ({ triggerText, items, onI
                   setIsOpen(false);
                 }}
                 className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-[10px] font-semibold cursor-pointer transition-colors text-left ${
-                  item.isSelected ? 'bg-blue-600/10 text-blue-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                  item.isSelected
+                    ? 'bg-blue-600/10 text-blue-400'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
                 }`}
               >
                 <span>{item.label}</span>
@@ -838,7 +866,9 @@ const DropdownMenuPm: React.FC<DropdownMenuPmProps> = ({ triggerText, items, onI
               </div>
             ))}
             {items.length === 0 && (
-              <div className="px-3 py-2 text-center text-[10px] text-slate-600 italic">No board members.</div>
+              <div className="px-3 py-2 text-center text-[10px] text-slate-600 italic">
+                No board members.
+              </div>
             )}
           </div>
         </>

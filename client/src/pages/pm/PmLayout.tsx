@@ -1,14 +1,15 @@
 import {
   BarChart2,
   Bell,
+  FileText,
   Folder,
   LayoutDashboard,
-  User,
-  FileText,
   MessageSquare,
+  User,
 } from 'lucide-react';
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+
 import { BaseLayout } from '@/components/BaseLayout';
 
 interface PmLayoutProps {

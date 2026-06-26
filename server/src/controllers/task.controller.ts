@@ -36,11 +36,11 @@ import { PermissionService } from '../services/permission.service';
 import {
   createTask,
   deleteTask,
+  getAdminAllTasks,
   getAllTasks,
+  getMyTasks,
   getTaskById,
   updateTask,
-  getMyTasks,
-  getAdminAllTasks,
 } from '../services/task.service';
 import { ApiError } from '../utils/apiError.util';
 import { successResponse } from '../utils/response.util';
@@ -103,17 +103,20 @@ export class TaskController extends Controller {
     @Request() request: ExRequest,
   ): Promise<TaskResponse> {
     const { userId: requestorId, role: requestorRole } = (request as any).user;
-    
+
     // Check permission to create task inside the target project
     const canCreate = await PermissionService.canPerformAction(
       requestorId,
       requestorRole,
       body.projectId,
-      'TASK_CREATED'
+      'TASK_CREATED',
     );
 
     if (!canCreate) {
-      throw new ApiError(403, 'Access denied. You do not have permission to create tasks in this project.');
+      throw new ApiError(
+        403,
+        'Access denied. You do not have permission to create tasks in this project.',
+      );
     }
 
     const task = await createTask({ ...body, createdBy: requestorId });
@@ -151,7 +154,7 @@ export class TaskController extends Controller {
       requestorRole,
       projectId,
       action,
-      existingTask as any
+      existingTask as any,
     );
 
     if (!canPerform) {
@@ -182,13 +185,13 @@ export class TaskController extends Controller {
     if (!existingTask) throw new ApiError(404, 'Task not found.');
 
     const { userId: requestorId, role: requestorRole } = (request as any).user;
-    
+
     const canDelete = await PermissionService.canPerformAction(
       requestorId,
       requestorRole,
       existingTask.projectId,
       'TASK_DELETED',
-      existingTask as any
+      existingTask as any,
     );
 
     if (!canDelete) {

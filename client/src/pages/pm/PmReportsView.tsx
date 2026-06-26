@@ -1,23 +1,17 @@
+import { Project, ProjectMemberView, Task } from '@nextask/types';
 import { useQuery } from '@tanstack/react-query';
-import {
-  BarChart2,
-  Download,
-  Loader2,
-  TrendingUp,
-  Clock,
-  AlertCircle,
-} from 'lucide-react';
+import { AlertCircle, BarChart2, Clock, Download, Loader2, TrendingUp } from 'lucide-react';
 import React from 'react';
 import {
   Bar,
   BarChart,
+  Cell,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts';
 
 import { fetchUserProjects } from '@/api/profile.api';
@@ -25,7 +19,6 @@ import { fetchProjectMembers } from '@/api/projects.api';
 import { fetchTasks } from '@/api/tasks.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Project, Task, ProjectMemberView } from '@nextask/types';
 
 export const PmReportsView: React.FC = () => {
   // 1. Fetch PM's projects
@@ -39,9 +32,7 @@ export const PmReportsView: React.FC = () => {
     queryKey: ['pm-reports-all-tasks', projects.map((p) => p.id).join(',')],
     queryFn: async () => {
       if (projects.length === 0) return [];
-      const tasksPromises = projects.map((p) =>
-        fetchTasks(p.id).catch(() => [] as Task[])
-      );
+      const tasksPromises = projects.map((p) => fetchTasks(p.id).catch(() => [] as Task[]));
       const results = await Promise.all(tasksPromises);
       return results.flat();
     },
@@ -54,7 +45,7 @@ export const PmReportsView: React.FC = () => {
     queryFn: async () => {
       if (projects.length === 0) return [];
       const memberPromises = projects.map((p) =>
-        fetchProjectMembers(p.id).catch(() => [] as ProjectMemberView[])
+        fetchProjectMembers(p.id).catch(() => [] as ProjectMemberView[]),
       );
       const results = await Promise.all(memberPromises);
       const allMembers = results.flat();
@@ -101,7 +92,7 @@ export const PmReportsView: React.FC = () => {
   // Recharts: Team Workload (Active tasks per user)
   const workloadData = teamMembers.map((m) => {
     const activeAssignedCount = tasks.filter(
-      (t) => t.assignees?.some((a: any) => a.userId === m.userId) && t.status !== 'DONE'
+      (t) => t.assignees?.some((a) => a.userId === m.userId) && t.status !== 'DONE',
     ).length;
     return {
       name: m.user.name || m.user.email,
@@ -112,7 +103,15 @@ export const PmReportsView: React.FC = () => {
   // Export report to CSV helper
   const handleExportCSV = () => {
     if (tasks.length === 0) return;
-    const headers = ['Task ID', 'Project ID', 'Title', 'Priority', 'Status', 'Due Date', 'Created At'];
+    const headers = [
+      'Task ID',
+      'Project ID',
+      'Title',
+      'Priority',
+      'Status',
+      'Due Date',
+      'Created At',
+    ];
     const rows = tasks.map((t) => [
       t.id,
       t.projectId,
@@ -129,7 +128,10 @@ export const PmReportsView: React.FC = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `PM_Workspace_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute(
+      'download',
+      `PM_Workspace_Report_${new Date().toISOString().split('T')[0]}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -144,7 +146,8 @@ export const PmReportsView: React.FC = () => {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Performance Analytics</h1>
           <p className="text-slate-400 mt-1 text-sm">
-            Examine task velocities, priority spreads, team workloads, and export compiled spreadsheets.
+            Examine task velocities, priority spreads, team workloads, and export compiled
+            spreadsheets.
           </p>
         </div>
         <Button
@@ -166,14 +169,32 @@ export const PmReportsView: React.FC = () => {
           {/* Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Managed Boards', value: totalProjects, icon: TrendingUp, color: 'text-indigo-400' },
+              {
+                label: 'Managed Boards',
+                value: totalProjects,
+                icon: TrendingUp,
+                color: 'text-indigo-400',
+              },
               { label: 'Active Tasks', value: activeTasks, icon: Clock, color: 'text-amber-400' },
-              { label: 'Completed Deliverables', value: completedTasks, icon: BarChart2, color: 'text-emerald-400' },
-              { label: 'Overdue Items', value: overdueTasks, icon: AlertCircle, color: 'text-red-500' },
+              {
+                label: 'Completed Deliverables',
+                value: completedTasks,
+                icon: BarChart2,
+                color: 'text-emerald-400',
+              },
+              {
+                label: 'Overdue Items',
+                value: overdueTasks,
+                icon: AlertCircle,
+                color: 'text-red-500',
+              },
             ].map((c, i) => {
               const Icon = c.icon;
               return (
-                <div key={i} className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between">
+                <div
+                  key={i}
+                  className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between"
+                >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs text-slate-400 font-semibold">{c.label}</span>
                     <Icon className={`w-4 h-4 ${c.color}`} />
@@ -190,17 +211,27 @@ export const PmReportsView: React.FC = () => {
             <Card className="bg-slate-900 border-slate-800/80 text-slate-100 rounded-2xl p-5">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="text-sm font-semibold">Project Completion Speed</CardTitle>
-                <CardDescription className="text-xs text-slate-450">Percentage of tasks resolved per board.</CardDescription>
+                <CardDescription className="text-xs text-slate-450">
+                  Percentage of tasks resolved per board.
+                </CardDescription>
               </CardHeader>
               <CardContent className="h-64 p-0">
                 {projectProgressData.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">No active projects.</div>
+                  <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">
+                    No active projects.
+                  </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={projectProgressData} margin={{ left: -20, bottom: 0 }}>
                       <XAxis dataKey="name" stroke="#64748B" fontSize={10} tickLine={false} />
                       <YAxis stroke="#64748B" fontSize={10} tickLine={false} domain={[0, 100]} />
-                      <Tooltip contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1E293B', borderRadius: 8 }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#0B0F19',
+                          borderColor: '#1E293B',
+                          borderRadius: 8,
+                        }}
+                      />
                       <Bar dataKey="Progress" fill="#3B82F6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -215,7 +246,9 @@ export const PmReportsView: React.FC = () => {
               </CardHeader>
               <CardContent className="h-64 p-0 flex flex-col justify-between">
                 {totalTasks === 0 ? (
-                  <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">No tasks found.</div>
+                  <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">
+                    No tasks found.
+                  </div>
                 ) : (
                   <>
                     <div className="h-44 w-full">
@@ -228,19 +261,33 @@ export const PmReportsView: React.FC = () => {
                             paddingAngle={3}
                             dataKey="value"
                           >
-                             {statusData.map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                            {statusData.map((_, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={STATUS_COLORS[index % STATUS_COLORS.length]}
+                              />
                             ))}
                           </Pie>
-                          <Tooltip contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1E293B', borderRadius: 8 }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#0B0F19',
+                              borderColor: '#1E293B',
+                              borderRadius: 8,
+                            }}
+                          />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
                     <div className="flex justify-around text-xs font-semibold">
                       {statusData.map((d, i) => (
                         <div key={d.name} className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[i] }} />
-                          <span className="text-slate-400">{d.name} ({d.value})</span>
+                          <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ backgroundColor: STATUS_COLORS[i] }}
+                          />
+                          <span className="text-slate-400">
+                            {d.name} ({d.value})
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -253,17 +300,27 @@ export const PmReportsView: React.FC = () => {
             <Card className="bg-slate-900 border-slate-800/80 text-slate-100 rounded-2xl p-5 lg:col-span-2">
               <CardHeader className="p-0 pb-4">
                 <CardTitle className="text-sm font-semibold">Teammate Workload Spread</CardTitle>
-                <CardDescription className="text-xs text-slate-450">Active tickets currently handled by team members.</CardDescription>
+                <CardDescription className="text-xs text-slate-450">
+                  Active tickets currently handled by team members.
+                </CardDescription>
               </CardHeader>
               <CardContent className="h-64 p-0">
                 {workloadData.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">No members found.</div>
+                  <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">
+                    No members found.
+                  </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={workloadData} margin={{ left: -20, bottom: 0 }}>
                       <XAxis dataKey="name" stroke="#64748B" fontSize={10} tickLine={false} />
                       <YAxis stroke="#64748B" fontSize={10} tickLine={false} />
-                      <Tooltip contentStyle={{ backgroundColor: '#0B0F19', borderColor: '#1E293B', borderRadius: 8 }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#0B0F19',
+                          borderColor: '#1E293B',
+                          borderRadius: 8,
+                        }}
+                      />
                       <Bar dataKey="Active Tasks" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>

@@ -1,3 +1,4 @@
+import { Notification } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, Check, CheckSquare, Loader2, Search } from 'lucide-react';
 import React, { useState } from 'react';
@@ -10,9 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useToastStore } from '@/store/toast.store';
 import { extractApiError } from '@/lib/apiError';
-import { Notification } from '@nextask/types';
+import { useToastStore } from '@/store/toast.store';
 
 export const CollaboratorNotificationsView: React.FC = () => {
   const queryClient = useQueryClient();
@@ -94,7 +94,9 @@ export const CollaboratorNotificationsView: React.FC = () => {
               key={mode}
               onClick={() => setFilterMode(mode)}
               className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all capitalize ${
-                filterMode === mode ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+                filterMode === mode
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               {mode === 'ALL' ? 'All Alerts' : `Unread (${unreadCount})`}
@@ -126,11 +128,15 @@ export const CollaboratorNotificationsView: React.FC = () => {
             >
               <CardContent className="p-4 flex items-start justify-between gap-4">
                 <div className="min-w-0 flex gap-3">
-                  <div className={`p-2 rounded-xl mt-0.5 shrink-0 ${notif.isRead ? 'bg-slate-950 text-slate-500' : 'bg-blue-500/10 text-blue-400'}`}>
+                  <div
+                    className={`p-2 rounded-xl mt-0.5 shrink-0 ${notif.isRead ? 'bg-slate-950 text-slate-500' : 'bg-blue-500/10 text-blue-400'}`}
+                  >
                     <Bell size={14} />
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-medium leading-relaxed leading-snug">{notif.message}</p>
+                    <p className="text-xs font-medium leading-relaxed leading-snug">
+                      {notif.message}
+                    </p>
                     <span className="text-[10px] text-slate-500 block mt-1">
                       {new Date(notif.createdAt).toLocaleString()}
                     </span>

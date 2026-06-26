@@ -468,10 +468,10 @@ export function Dashboard() {
 
   const mappedSelectedTask = taskDetails
     ? {
-      ...taskDetails,
-      status: mapStatusToFrontend(taskDetails.status),
-      priority: mapPriorityToFrontend(taskDetails.priority),
-    }
+        ...taskDetails,
+        status: mapStatusToFrontend(taskDetails.status),
+        priority: mapPriorityToFrontend(taskDetails.priority),
+      }
     : null;
 
   const { data: comments = [], refetch: refetchComments } = useQuery({
@@ -1031,12 +1031,13 @@ export function Dashboard() {
                     <TableCell className="text-foreground font-medium">{task.title}</TableCell>
                     <TableCell>
                       <span
-                        className={`text-xs px-2 py-1 rounded-full border ${task.status === 'Done'
+                        className={`text-xs px-2 py-1 rounded-full border ${
+                          task.status === 'Done'
                             ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                             : task.status === 'In Progress'
                               ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                               : 'bg-muted text-muted-foreground border-border'
-                          }`}
+                        }`}
                       >
                         {task.status}
                       </span>
@@ -1303,8 +1304,9 @@ export function Dashboard() {
                 />
                 <div
                   onClick={() => !isUploading && document.getElementById('file-upload')?.click()}
-                  className={`border-2 border-dashed border-border bg-muted/30 rounded-xl p-6 text-center hover:border-primary hover:bg-primary/5 transition-all ${isUploading ? 'cursor-not-allowed' : 'cursor-pointer'
-                    } group`}
+                  className={`border-2 border-dashed border-border bg-muted/30 rounded-xl p-6 text-center hover:border-primary hover:bg-primary/5 transition-all ${
+                    isUploading ? 'cursor-not-allowed' : 'cursor-pointer'
+                  } group`}
                 >
                   {isUploading ? (
                     <p className="text-sm animate-pulse text-primary font-semibold">
@@ -1492,7 +1494,11 @@ export function Dashboard() {
             </Button>
             <Button
               onClick={handleCreateProject}
-              disabled={createProjectMutation.isPending || !newProjectName.trim() || newProjectName.trim().length < 3}
+              disabled={
+                createProjectMutation.isPending ||
+                !newProjectName.trim() ||
+                newProjectName.trim().length < 3
+              }
             >
               Create Project
             </Button>

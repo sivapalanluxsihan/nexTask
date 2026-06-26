@@ -1,9 +1,4 @@
-import {
-  AdminUpdateUserRequest,
-  User,
-  UserActivityResponse,
-  UserRole,
-} from '@nextask/types';
+import { AdminUpdateUserRequest, User, UserActivityResponse, UserRole } from '@nextask/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Edit,
@@ -249,7 +244,8 @@ export const AdminUsersView: React.FC = () => {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">User Administration</h1>
           <p className="text-slate-400 mt-1 text-sm">
-            Configure platform permissions, manage roles, view user directories, and monitor audit trails.
+            Configure platform permissions, manage roles, view user directories, and monitor audit
+            trails.
           </p>
         </div>
         <Button
@@ -267,7 +263,12 @@ export const AdminUsersView: React.FC = () => {
           { label: 'Active Users', value: activeCount, icon: UserCheck, color: 'text-emerald-400' },
           { label: 'Administrators', value: adminCount, icon: Shield, color: 'text-indigo-400' },
           { label: 'Project Managers', value: pmCount, icon: Shield, color: 'text-purple-400' },
-          { label: 'Collaborators', value: collaboratorCount, icon: Shield, color: 'text-amber-400' },
+          {
+            label: 'Collaborators',
+            value: collaboratorCount,
+            icon: Shield,
+            color: 'text-amber-400',
+          },
         ].map((card, i) => {
           const Icon = card.icon;
           return (
@@ -366,11 +367,17 @@ export const AdminUsersView: React.FC = () => {
                   {paginatedUsers.map((u) => {
                     const isSelf = u.id === currentUser?.id;
                     return (
-                      <TableRow key={u.id} className="hover:bg-slate-950/20 border-b border-slate-800/60 transition-colors">
+                      <TableRow
+                        key={u.id}
+                        className="hover:bg-slate-950/20 border-b border-slate-800/60 transition-colors"
+                      >
                         <TableCell className="font-medium text-slate-100 pl-6">
                           {u.name || <span className="text-slate-500 italic">Unnamed</span>}
                           {isSelf && (
-                            <Badge variant="secondary" className="ml-2 bg-indigo-950/40 text-indigo-400 border border-indigo-800/30 text-[10px]">
+                            <Badge
+                              variant="secondary"
+                              className="ml-2 bg-indigo-950/40 text-indigo-400 border border-indigo-800/30 text-[10px]"
+                            >
                               You
                             </Badge>
                           )}
@@ -396,7 +403,9 @@ export const AdminUsersView: React.FC = () => {
                                 u.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
                               }`}
                             />
-                            <span className={`text-xs font-semibold ${u.isActive ? 'text-emerald-400' : 'text-amber-400'}`}>
+                            <span
+                              className={`text-xs font-semibold ${u.isActive ? 'text-emerald-400' : 'text-amber-400'}`}
+                            >
                               {u.isActive ? 'Active' : 'Deactivated'}
                             </span>
                           </div>
@@ -579,9 +588,7 @@ export const AdminUsersView: React.FC = () => {
                 disabled={createUserMutation.isPending}
                 className="bg-indigo-600 hover:bg-indigo-755 text-white"
               >
-                {createUserMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {createUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create User
               </Button>
             </DialogFooter>
@@ -651,9 +658,7 @@ export const AdminUsersView: React.FC = () => {
                 disabled={updateUserMutation.isPending}
                 className="bg-indigo-600 hover:bg-indigo-755 text-white"
               >
-                {updateUserMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {updateUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
               </Button>
             </DialogFooter>
@@ -670,8 +675,8 @@ export const AdminUsersView: React.FC = () => {
             </DialogTitle>
             <DialogDescription className="text-slate-400 mt-2">
               Are you sure you want to permanently delete user{' '}
-              <strong className="text-slate-100">{deletingUserEmail}</strong>? This action cannot
-              be undone and will purge their membership.
+              <strong className="text-slate-100">{deletingUserEmail}</strong>? This action cannot be
+              undone and will purge their membership.
             </DialogDescription>
           </DialogHeader>
 
@@ -734,9 +739,7 @@ export const AdminUsersView: React.FC = () => {
               }}
               disabled={resetPasswordMutation.isPending}
             >
-              {resetPasswordMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {resetPasswordMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirm Reset
             </Button>
           </DialogFooter>

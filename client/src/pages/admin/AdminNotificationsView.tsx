@@ -138,7 +138,7 @@ export const AdminNotificationsView: React.FC = () => {
           <span className="text-xs text-slate-400 shrink-0 font-medium">Filter:</span>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'UNREAD' | 'READ')}
             className="h-9 px-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="ALL">All Alerts</option>
@@ -206,7 +206,10 @@ export const AdminNotificationsView: React.FC = () => {
       )}
 
       {/* Viewing Details Dialog */}
-      <Dialog open={!!viewingNotification} onOpenChange={(open) => !open && setViewingNotification(null)}>
+      <Dialog
+        open={!!viewingNotification}
+        onOpenChange={(open) => !open && setViewingNotification(null)}
+      >
         <DialogContent className="bg-slate-900 border-slate-800 text-slate-100 sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="capitalize text-indigo-400 font-bold">
@@ -224,8 +227,7 @@ export const AdminNotificationsView: React.FC = () => {
             <div className="text-[10px] text-slate-500 pt-2 flex items-center justify-between">
               <span>
                 Received:{' '}
-                {viewingNotification &&
-                  new Date(viewingNotification.createdAt).toLocaleString()}
+                {viewingNotification && new Date(viewingNotification.createdAt).toLocaleString()}
               </span>
               <span className="flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-450" /> Already read

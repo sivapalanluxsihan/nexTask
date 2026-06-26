@@ -382,13 +382,15 @@ export function Calendar() {
               <Info className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <CardTitle className="text-base font-extrabold tracking-tight text-foreground">Task Preview</CardTitle>
+              <CardTitle className="text-base font-extrabold tracking-tight text-foreground">
+                Task Preview
+              </CardTitle>
               <CardDescription className="text-xs text-muted-foreground max-w-[220px] mx-auto leading-relaxed">
-                Select any task card from the calendar grid to view description, assignees, and label
-                details.
+                Select any task card from the calendar grid to view description, assignees, and
+                label details.
               </CardDescription>
             </div>
-            
+
             {/* Visual Skeleton Placeholder */}
             <div className="w-full pt-4 border-t border-border/40 flex flex-col gap-2 opacity-30 mt-2">
               <div className="flex gap-2 justify-center">

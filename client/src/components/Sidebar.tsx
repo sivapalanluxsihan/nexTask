@@ -1,16 +1,10 @@
-import {
-  Calendar,
-  LayoutDashboard,
-  LogOut,
-  Settings,
-  Shield,
-} from 'lucide-react';
+import { Calendar, LayoutDashboard, LogOut, Settings, Shield } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { useWebPush } from '@/hooks/useWebPush';
 import { useAuthStore } from '@/store/auth.store';
 
-export function Sidebar(_props: { isOpen?: boolean }) {
+export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
@@ -44,23 +38,18 @@ export function Sidebar(_props: { isOpen?: boolean }) {
       <div className="flex flex-col gap-6">
         {/* Header Section */}
         <div className="pt-[28px] pl-[24px]">
-          <div className="flex items-center gap-[12px] select-none group cursor-pointer">
-            <img 
-              src="/logo.png" 
-              alt="NexTask Logo" 
-              className="w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] md:w-[40px] md:h-[40px] object-contain transition-all duration-[250ms] ease-in-out group-hover:scale-[1.05] filter drop-shadow-[0_4px_12px_rgba(110,90,255,0.35)] group-hover:drop-shadow-[0_0_12px_rgba(110,90,255,0.6)]" 
-            />
-            <span 
+          <div className="flex items-center select-none group cursor-pointer">
+            <span
               className="font-bold text-[28px] tracking-[-0.5px]"
               style={{
                 background: 'linear-gradient(90deg, #7C5CFF, #59A8FF)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
-                color: 'transparent'
+                color: 'transparent',
               }}
             >
-              NexTask
+              nexTask
             </span>
           </div>
         </div>
@@ -100,7 +89,9 @@ export function Sidebar(_props: { isOpen?: boolean }) {
           >
             <LayoutDashboard
               className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${
-                isActive('/dashboard') ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-100'
+                isActive('/dashboard')
+                  ? 'text-blue-400'
+                  : 'text-slate-400 group-hover:text-slate-100'
               }`}
             />
             <span>Dashboard</span>
@@ -118,7 +109,9 @@ export function Sidebar(_props: { isOpen?: boolean }) {
           >
             <Calendar
               className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${
-                isActive('/calendar') ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-100'
+                isActive('/calendar')
+                  ? 'text-blue-400'
+                  : 'text-slate-400 group-hover:text-slate-100'
               }`}
             />
             <span>Calendar</span>
@@ -139,7 +132,9 @@ export function Sidebar(_props: { isOpen?: boolean }) {
               >
                 <Shield
                   className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${
-                    isActive('/admin') ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-100'
+                    isActive('/admin')
+                      ? 'text-blue-400'
+                      : 'text-slate-400 group-hover:text-slate-100'
                   }`}
                 />
                 <span>Admin Portal</span>
@@ -160,7 +155,9 @@ export function Sidebar(_props: { isOpen?: boolean }) {
           >
             <Settings
               className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${
-                isActive('/settings') ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-100'
+                isActive('/settings')
+                  ? 'text-blue-400'
+                  : 'text-slate-400 group-hover:text-slate-100'
               }`}
             />
             <span>Settings</span>

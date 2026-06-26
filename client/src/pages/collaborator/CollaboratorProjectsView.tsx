@@ -1,42 +1,41 @@
+import { Project, ProjectMemberView, Task } from '@nextask/types';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Folder,
-  Calendar,
-  Users,
-  Loader2,
-  Paperclip,
-  ArrowLeft,
-  FileText,
-} from 'lucide-react';
+import { ArrowLeft, Calendar, FileText, Folder, Loader2, Paperclip, Users } from 'lucide-react';
 import React, { useState } from 'react';
+
 import { fetchUserProjects } from '@/api/profile.api';
 import { fetchProjectMembers } from '@/api/projects.api';
 import { fetchTasks } from '@/api/tasks.api';
-import { useAuthStore } from '@/store/auth.store';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { useAuthStore } from '@/store/auth.store';
 
 export const CollaboratorProjectsView: React.FC = () => {
   const user = useAuthStore((s) => s.user);
-  const [selectedProject, setSelectedProject] = useState<any | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'files'>('overview');
 
   // 1. Fetch user's member projects
-  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+  const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ['collaborator-projects-view'],
     queryFn: fetchUserProjects,
   });
 
   // 2. Fetch tasks across all member projects to calculate progress rates
-  const { data: allTasks = [], isLoading: tasksLoading } = useQuery({
+  const { data: allTasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ['collaborator-projects-tasks', projects.map((p) => p.id).join(',')],
     queryFn: async () => {
       if (projects.length === 0) return [];
-      const promises = projects.map((p) =>
-        fetchTasks(p.id).catch(() => [])
-      );
+      const promises = projects.map((p) => fetchTasks(p.id).catch(() => []));
       const results = await Promise.all(promises);
       return results.flat();
     },
@@ -44,7 +43,9 @@ export const CollaboratorProjectsView: React.FC = () => {
   });
 
   // 3. Fetch project members of the selected project
-  const { data: selectedProjectMembers = [], isLoading: membersLoading } = useQuery({
+  const { data: selectedProjectMembers = [], isLoading: membersLoading } = useQuery<
+    ProjectMemberView[]
+  >({
     queryKey: ['collaborator-project-members', selectedProject?.id],
     queryFn: () => fetchProjectMembers(selectedProject!.id),
     enabled: !!selectedProject?.id,
@@ -54,7 +55,7 @@ export const CollaboratorProjectsView: React.FC = () => {
 
   // Selected project tasks assigned to user
   const selectedProjectMyTasks = allTasks.filter(
-    (t) => t.projectId === selectedProject?.id && t.assignees?.some((a: any) => a.userId === user?.id)
+    (t) => t.projectId === selectedProject?.id && t.assignees?.some((a) => a.userId === user?.id),
   );
 
   // Selected project attachments (flattened from all tasks in project)
@@ -120,14 +121,18 @@ export const CollaboratorProjectsView: React.FC = () => {
                     <div>
                       <span className="text-slate-500 font-medium block">Project Manager</span>
                       <span className="text-slate-300 font-semibold block mt-1">
-                        {projectManager ? `${projectManager.name || projectManager.email}` : 'Loading manager details...'}
+                        {projectManager
+                          ? `${projectManager.name || projectManager.email}`
+                          : 'Loading manager details...'}
                       </span>
                     </div>
                     <div>
                       <span className="text-slate-500 font-medium block">Target Delivery</span>
                       <span className="text-slate-300 font-semibold block mt-1 flex items-center gap-1">
                         <Calendar size={12} className="text-slate-500" />
-                        {selectedProject.endDate ? new Date(selectedProject.endDate).toLocaleDateString() : 'N/A'}
+                        {selectedProject.endDate
+                          ? new Date(selectedProject.endDate).toLocaleDateString()
+                          : 'N/A'}
                       </span>
                     </div>
                   </div>
@@ -136,7 +141,10 @@ export const CollaboratorProjectsView: React.FC = () => {
                 <div className="border-t border-slate-800/80 pt-5">
                   <h3 className="text-sm font-bold text-slate-300 mb-3">Workspace Scope</h3>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    As a Collaborator in this project workspace, you are authorized to view tasks assigned to you, post updates, comment on actions, and register file attachments. You do not have permissions to manage team members or edit project settings.
+                    As a Collaborator in this project workspace, you are authorized to view tasks
+                    assigned to you, post updates, comment on actions, and register file
+                    attachments. You do not have permissions to manage team members or edit project
+                    settings.
                   </p>
                 </div>
               </Card>
@@ -180,32 +188,47 @@ export const CollaboratorProjectsView: React.FC = () => {
               <Table>
                 <TableHeader className="bg-slate-950/40 border-b border-slate-800/60">
                   <TableRow>
-                    <TableHead className="text-slate-350 text-xs font-bold pl-6">Task Title</TableHead>
+                    <TableHead className="text-slate-350 text-xs font-bold pl-6">
+                      Task Title
+                    </TableHead>
                     <TableHead className="text-slate-350 text-xs font-bold">Priority</TableHead>
                     <TableHead className="text-slate-350 text-xs font-bold">Status</TableHead>
-                    <TableHead className="text-slate-350 text-xs font-bold pr-6">Due Date</TableHead>
+                    <TableHead className="text-slate-350 text-xs font-bold pr-6">
+                      Due Date
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {selectedProjectMyTasks.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-12 text-slate-550 text-xs italic">
+                      <TableCell
+                        colSpan={4}
+                        className="text-center py-12 text-slate-550 text-xs italic"
+                      >
                         No tasks assigned to you in this project.
                       </TableCell>
                     </TableRow>
                   ) : (
                     selectedProjectMyTasks.map((t) => (
                       <TableRow key={t.id} className="border-b border-slate-850/60 text-left">
-                        <TableCell className="font-semibold text-slate-100 pl-6 py-4">{t.title}</TableCell>
+                        <TableCell className="font-semibold text-slate-100 pl-6 py-4">
+                          {t.title}
+                        </TableCell>
                         <TableCell>
-                          <Badge className={`text-[9px] uppercase tracking-wider ${
-                            t.priority === 'HIGH' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-slate-800 text-slate-300'
-                          }`}>
+                          <Badge
+                            className={`text-[9px] uppercase tracking-wider ${
+                              t.priority === 'HIGH'
+                                ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                                : 'bg-slate-800 text-slate-300'
+                            }`}
+                          >
                             {t.priority}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-slate-950 border-slate-850 text-slate-300 text-[10px]">{t.status}</Badge>
+                          <Badge className="bg-slate-950 border-slate-850 text-slate-300 text-[10px]">
+                            {t.status}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-slate-400 text-xs pr-6">
                           {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : 'N/A'}
@@ -225,12 +248,17 @@ export const CollaboratorProjectsView: React.FC = () => {
                 Project Attachments ({selectedProjectAttachments.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {selectedProjectAttachments.map((att: any) => (
-                  <div key={att.id} className="bg-slate-950 border border-slate-855/80 p-3.5 rounded-xl flex flex-col justify-between h-28">
+                {selectedProjectAttachments.map((att) => (
+                  <div
+                    key={att.id}
+                    className="bg-slate-950 border border-slate-855/80 p-3.5 rounded-xl flex flex-col justify-between h-28"
+                  >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <Paperclip size={14} className="text-slate-500 shrink-0" />
-                        <span className="text-xs font-semibold text-slate-300 truncate">{att.filename}</span>
+                        <span className="text-xs font-semibold text-slate-300 truncate">
+                          {att.filename}
+                        </span>
                       </div>
                       <p className="text-[10px] text-slate-500 mt-2 truncate flex items-center gap-1">
                         <FileText size={10} /> Task: {att.taskTitle}
@@ -264,7 +292,8 @@ export const CollaboratorProjectsView: React.FC = () => {
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight">My Projects</h1>
               <p className="text-slate-400 mt-1 text-sm">
-                Overview of projects where you are registered as a member. Select a project to inspect files and tasks.
+                Overview of projects where you are registered as a member. Select a project to
+                inspect files and tasks.
               </p>
             </div>
           </div>
@@ -280,13 +309,18 @@ export const CollaboratorProjectsView: React.FC = () => {
                 <div className="col-span-full py-24 text-center border border-slate-900 rounded-2xl bg-slate-900/10">
                   <Folder className="h-10 w-10 text-slate-650 mx-auto mb-3" />
                   <p className="text-slate-400 text-sm font-semibold">No assigned projects found</p>
-                  <p className="text-slate-550 text-xs mt-1">You need to be added to a project by a Project Manager.</p>
+                  <p className="text-slate-550 text-xs mt-1">
+                    You need to be added to a project by a Project Manager.
+                  </p>
                 </div>
               ) : (
                 projects.map((proj) => {
                   const projTasks = allTasks.filter((t) => t.projectId === proj.id);
                   const completedCount = projTasks.filter((t) => t.status === 'DONE').length;
-                  const progressRate = projTasks.length > 0 ? Math.round((completedCount / projTasks.length) * 100) : 0;
+                  const progressRate =
+                    projTasks.length > 0
+                      ? Math.round((completedCount / projTasks.length) * 100)
+                      : 0;
 
                   return (
                     <Card
@@ -326,7 +360,8 @@ export const CollaboratorProjectsView: React.FC = () => {
                         <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold">
                           <span className="flex items-center gap-1">
                             <Calendar size={11} />
-                            Due: {proj.endDate ? new Date(proj.endDate).toLocaleDateString() : 'N/A'}
+                            Due:{' '}
+                            {proj.endDate ? new Date(proj.endDate).toLocaleDateString() : 'N/A'}
                           </span>
                           <span>{projTasks.length} tasks total</span>
                         </div>

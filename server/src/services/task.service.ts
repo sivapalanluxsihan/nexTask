@@ -4,8 +4,8 @@ import { NotificationType, Status, Task } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/apiError.util';
 import { NotificationService } from './notification.service';
-import { deleteFile, generateDownloadUrl } from './s3.service';
 import { PermissionService } from './permission.service';
+import { deleteFile, generateDownloadUrl } from './s3.service';
 
 export type CreateTaskInput = CreateTaskRequest;
 export type UpdateTaskInput = UpdateTaskRequest;
@@ -71,13 +71,14 @@ export const getAllTasks = async (
   tags?: string[],
 ): Promise<SharedTask[]> => {
   // If Collaborator, we MUST only return tasks assigned to the user
-  const assignmentsFilter = userRole === 'COLLABORATOR'
-    ? {
-        some: {
-          userId,
-        },
-      }
-    : undefined;
+  const assignmentsFilter =
+    userRole === 'COLLABORATOR'
+      ? {
+          some: {
+            userId,
+          },
+        }
+      : undefined;
 
   const tasks = await prisma.task.findMany({
     where: {
@@ -125,8 +126,20 @@ export const getAllTasks = async (
       );
 
       // Compute backend-only UI hint permissions
-      const canEdit = await PermissionService.canPerformAction(userId, userRole as any, task.projectId, 'TASK_UPDATED', task);
-      const canDelete = await PermissionService.canPerformAction(userId, userRole as any, task.projectId, 'TASK_DELETED', task);
+      const canEdit = await PermissionService.canPerformAction(
+        userId,
+        userRole as any,
+        task.projectId,
+        'TASK_UPDATED',
+        task,
+      );
+      const canDelete = await PermissionService.canPerformAction(
+        userId,
+        userRole as any,
+        task.projectId,
+        'TASK_DELETED',
+        task,
+      );
 
       return {
         id: task.id,
@@ -198,8 +211,20 @@ export const getMyTasks = async (userId: string): Promise<SharedTask[]> => {
         }),
       );
 
-      const canEdit = await PermissionService.canPerformAction(userId, 'COLLABORATOR', task.projectId, 'TASK_STATUS_CHANGED', task);
-      const canDelete = await PermissionService.canPerformAction(userId, 'COLLABORATOR', task.projectId, 'TASK_DELETED', task);
+      const canEdit = await PermissionService.canPerformAction(
+        userId,
+        'COLLABORATOR',
+        task.projectId,
+        'TASK_STATUS_CHANGED',
+        task,
+      );
+      const canDelete = await PermissionService.canPerformAction(
+        userId,
+        'COLLABORATOR',
+        task.projectId,
+        'TASK_DELETED',
+        task,
+      );
 
       return {
         id: task.id,
@@ -231,7 +256,7 @@ export const getMyTasks = async (userId: string): Promise<SharedTask[]> => {
 };
 
 // GET ALL TASKS SYSTEM-WIDE (Admin only)
-export const getAdminAllTasks = async (adminId: string): Promise<SharedTask[]> => {
+export const getAdminAllTasks = async (_adminId: string): Promise<SharedTask[]> => {
   const tasks = await prisma.task.findMany({
     include: {
       attachments: {
@@ -294,7 +319,11 @@ export const getAdminAllTasks = async (adminId: string): Promise<SharedTask[]> =
 };
 
 // GET ONE BY ID
-export const getTaskById = async (id: string, userId?: string, userRole?: string): Promise<SharedTask | null> => {
+export const getTaskById = async (
+  id: string,
+  userId?: string,
+  userRole?: string,
+): Promise<SharedTask | null> => {
   const task = await prisma.task.findUnique({
     where: { id },
     include: {
@@ -345,8 +374,20 @@ export const getTaskById = async (id: string, userId?: string, userRole?: string
   let canEdit = false;
   let canDelete = false;
   if (userId && userRole) {
-    canEdit = await PermissionService.canPerformAction(userId, userRole as any, task.projectId, 'TASK_UPDATED', task);
-    canDelete = await PermissionService.canPerformAction(userId, userRole as any, task.projectId, 'TASK_DELETED', task);
+    canEdit = await PermissionService.canPerformAction(
+      userId,
+      userRole as any,
+      task.projectId,
+      'TASK_UPDATED',
+      task,
+    );
+    canDelete = await PermissionService.canPerformAction(
+      userId,
+      userRole as any,
+      task.projectId,
+      'TASK_DELETED',
+      task,
+    );
   }
 
   return {
@@ -377,7 +418,11 @@ export const getTaskById = async (id: string, userId?: string, userRole?: string
 };
 
 // UPDATE
-export const updateTask = async (id: string, data: UpdateTaskInput, userId: string): Promise<Task> => {
+export const updateTask = async (
+  id: string,
+  data: UpdateTaskInput,
+  userId: string,
+): Promise<Task> => {
   if (data.dueDate && new Date(data.dueDate) <= new Date()) {
     throw new ApiError(400, 'Due date must be in the future.');
   }

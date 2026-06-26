@@ -1,9 +1,17 @@
+import { Project, Task } from '@nextask/types';
 import React from 'react';
-import { Task, Project } from '@nextask/types';
-import { Card } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
+import { mapPriorityToFrontend, mapStatusToFrontend } from '@/api/tasks.api';
 import { Badge } from '@/components/ui/badge';
-import { mapStatusToFrontend, mapPriorityToFrontend } from '@/api/tasks.api';
+import { Card } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface TaskTableProps {
   tasks: Task[];
@@ -64,10 +72,16 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, projects, onTaskCli
                   onClick={() => onTaskClick(t)}
                   className="hover:bg-slate-855/20 border-b border-slate-800/60 cursor-pointer transition-colors"
                 >
-                  <TableCell className="font-semibold text-slate-100 pl-6 py-4">{t.title}</TableCell>
-                  <TableCell className="text-slate-350 text-xs">{proj?.name || 'Unknown'}</TableCell>
+                  <TableCell className="font-semibold text-slate-100 pl-6 py-4">
+                    {t.title}
+                  </TableCell>
+                  <TableCell className="text-slate-350 text-xs">
+                    {proj?.name || 'Unknown'}
+                  </TableCell>
                   <TableCell>
-                    <Badge className={`${getPriorityBadgeStyle(t.priority)} text-[9px] uppercase tracking-wider border`}>
+                    <Badge
+                      className={`${getPriorityBadgeStyle(t.priority)} text-[9px] uppercase tracking-wider border`}
+                    >
                       {mapPriorityToFrontend(t.priority)}
                     </Badge>
                   </TableCell>
