@@ -445,7 +445,7 @@ pnpm seed
 | **Project Manager** | `pm@example.com`    | `Password123!`     |
 | **Collaborator**    | `test@example.com`  | `Temporary!1`      |
 
-> **Note:** Seeded accounts are flagged with `mustResetPassword=true` and will trigger a forced password change upon their first successful login.
+> **Note:** Seeded project manager and collaborator accounts are flagged with `mustResetPassword=true` and will trigger a forced password change upon their first successful login, while the administrator account is seeded with `mustResetPassword=false`.
 
 ---
 

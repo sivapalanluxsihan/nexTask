@@ -30,13 +30,13 @@ async function main() {
       password: passwordHash,
       name,
       role: 'ADMIN',
-      mustResetPassword: true,
+      mustResetPassword: false,
     },
     update: {
       password: passwordHash,
       name,
       role: 'ADMIN',
-      mustResetPassword: true,
+      mustResetPassword: false,
     },
   });
 
